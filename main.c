@@ -3,6 +3,7 @@
 # define	SUPERSAMPLING	4
 # define	SPHERE		0
 # define	CYLINDER	1
+# define	CONE		3
 
 double		*get_current_z(t_depth_buffer *depth,
 	t_point2 screen_size, t_point2 current)
@@ -21,19 +22,19 @@ void	do_raytracer(t_point2 screen_size, t_rt rt)
 	t_rgb		final_color;
 	t_camera	c;
 
-	c.direction = (t_vec3){0, 0, 1};
+	c.direction = (t_vec3){0.001, 0.001, 1};
 	c.position = (t_vec3){0, 0, -1000};
-	s.position = (t_vec3){1, 1, 1};
+	s.position = (t_vec3){0, 0, 0};
 	s.type = SPHERE;
-	s.radius = 100;
-	s.size = 20;
+	s.radius = 90;
+	s.size = 1;
 	s.material.diffuse = (t_rgba){1, 0, 0, 1};
 	s.material.ambient = (t_rgba){0, 0, 0, 1};
 	s.material.specular = (t_rgba){1, 1, 1, 1};
 	s.material.spec_power = 10;
-	s.material.roughness = 0.5;
+	s.material.roughness = 1;
 	s.material.albedo = 1;
-	l.type = SPOT;
+	l.type = POINT;
 	l.direction	= (t_vec3){0.5, -0.5, 1};
 	l.position = (t_vec3){-100, 100, -250};
 	l.color = (t_rgb){1, 1, 1};
@@ -56,25 +57,39 @@ void	do_raytracer(t_point2 screen_size, t_rt rt)
 				current_float.x = current.x;
 				while (current_float.x < current.x + 1)
 				{
-					t_vec2 coord = (t_vec2){current_float.x - screen_size.x / 2, current_float.y - screen_size.y / 2};
+					t_vec2 coord = (t_vec2){screen_size.x / 2.0 - current_float.x, screen_size.y / 2.0 - current_float.y};
 					c.ray.origin = (t_vec3){c.position.x + coord.x, c.position.y + coord.y, c.position.z};
-					c.ray.direction = c.direction;
+					c.ray.direction = vec3_normalize(c.direction);
 					t_rgb color = rgb_divide(get_image_color(rt.image, current), 255);
 					if ((s.type == SPHERE && intersect_sphere(s, c.ray, current_z))
-					|| (s.type == CYLINDER && intersect_cylinder(s, c.ray, current_z)))
+					|| (s.type == CYLINDER && intersect_cylinder(s, c.ray, current_z))
+					|| (s.type == CONE && intersect_cone(s, c.ray, current_z)))
 					{
 						t_vec3		normal;
 						t_vec3		position;
 						t_vec3		light_dir;
 						t_vec3		view_dir;
 						position.x = (c.ray.origin.x + c.ray.direction.x * *current_z);
-						position.y = (-(c.ray.origin.y + c.ray.direction.y * *current_z));
+						position.y = (c.ray.origin.y + c.ray.direction.y * *current_z);
 						position.z = (c.ray.origin.z + c.ray.direction.z * *current_z);
-						normal = vec3_normalize((t_vec3){
-							(position.x - s.position.x) / s.radius,
-							(position.y - s.position.y) / s.radius,
-							(position.z - s.position.z) / s.radius
-						});
+						if (s.type == CYLINDER)
+							normal = vec3_normalize((t_vec3){
+								(position.x - s.position.x) / s.radius,
+								0,
+								(position.z - s.position.z) / s.radius
+							});
+						else if (s.type == SPHERE)
+							normal = vec3_normalize((t_vec3){
+								(position.x - s.position.x) / s.radius,
+								(position.y - s.position.y) / s.radius,
+								(position.z - s.position.z) / s.radius
+							});
+						else if (s.type == CONE)
+							normal = vec3_normalize((t_vec3){
+								(position.x + s.position.x),
+								(position.y + s.position.y),
+								(position.z + s.position.z)
+							});
 						light_dir = compute_lightdir(l, position);
 						view_dir = vec3_normalize(vec3_substract(c.ray.origin, position));
 						double	diffuse = DIFFUSE(normal, view_dir, light_dir, s.material);
@@ -111,6 +126,7 @@ void	do_raytracer(t_point2 screen_size, t_rt rt)
 		}
 		current.y++;
 	}
+	printf("done\n");
 }
 
 t_depth_buffer	*new_depth_buffer(t_point2 size)

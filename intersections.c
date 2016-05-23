@@ -21,22 +21,26 @@ enum e_bool	test_intersect(double t[2], double *current_z)
 	return (retvalue);
 }
 
+#include <stdio.h>
+
+
 enum e_bool	intersect_sphere(t_primitive s, t_ray r, double *current_z)
 {
-	t_vec3	dist = vec3_substract(s.position, r.origin);
-	double	B = vec3_dot(r.direction, dist);
-	double	D = B * B - vec3_dot(dist, dist) + s.radius * s.radius;
+	t_vec3 eye = vec3_substract(r.origin, s.position);
+	double a = vec3_dot(r.direction, r.direction);
+	double b = vec3_dot(eye, r.direction) * 2.0;
+	double c = vec3_dot(eye, eye) - (s.radius * s.radius);
 	double	t[2];
-	if (D < DOUBLE_ZERO)
+	double delta;
+	delta = sqrt((b * b) - (4.0 * a * c));
+	if (delta <= 0)
 		return (false);
-	t[0] = B - sqrt(D);
-	t[1] = B + sqrt(D);
+	t[0] = (-b - delta) / (2.0 * a);
+	t[1] = (-b + delta) / (2.0 * a);
 	return (test_intersect(t, current_z));
 }
 
-#include <stdio.h>
-
-void	swap(double *a, double *b)
+void	double_swap(double *a, double *b)
 {
 	double tmp;
 
@@ -59,22 +63,91 @@ enum e_bool Quadratic(double A, double B, double C, double *t0, double *t1)
 	*t0 = q / A;
 	*t1 = C / q;
 	if (*t0 > *t1)
-		swap(t0, t1);
+		double_swap(t0, t1);
 	return true;
 }
 
 enum e_bool	intersect_cylinder(t_primitive cp, t_ray r, double *current_z)
 {
-	t_vec3 eye = vec3_substract(cp.position, r.origin);
-	double a = r.direction.x * r.direction.x + r.direction.y * r.direction.y;
-	double b = 2.0 * (eye.x * r.direction.x + eye.y * r.direction.y);
-	double c = eye.x * eye.x + eye.y * eye.y - cp.radius * cp.radius;
-	//double a = vec3_dot(r.direction, r.direction);
-	//double b = 2.f * (vec3_dot(eye, r.direction));
-	//double c = vec3_dot(eye, eye) - cp.radius * cp.radius;
+	t_vec3 eye = vec3_substract(r.origin, cp.position);
+	double a = (r.direction.x * r.direction.x) + (r.direction.z * r.direction.z);
+	double b = 2.0 * ((eye.x * r.direction.x) + (eye.z * r.direction.z));
+	double c = (eye.x * eye.x) + (eye.z * eye.z)
+		- (cp.radius * cp.radius);
 	double	t[2];
-	t[0] = (-b - sqrt((b * b) - (4.0 * a * c))) / (2.0 * a);
-	t[1] = (-b + sqrt((b * b) - (4.0 * a * c))) / (2.0 * a);
+	double delta;
+	delta = sqrt((b * b) - (4.0 * a * c));
+	if (delta <= 0)
+		return (false);
+	t[0] = (-b - delta) / (2.0 * a);
+	t[1] = (-b + delta) / (2.0 * a);
+	return (test_intersect(t, current_z));
+}
+
+//    float a,b,c,delta,t0,t1,t_;
+//    a = r.direction.x * r.direction.x
+//    	+ r.direction.z * r.direction.z
+//    	- r.direction.y * r.direction.y;
+//    b = 2 * r.origin.x * r.direction.x
+//    	+ 2 * r.direction.y
+//    	- 2 * r.origin.y * r.direction.y
+//    	+ 2 * r.origin.z * r.direction.z;
+//    c = r.origin.x * r.origin.x
+//    	- r.origin.y * r.origin.y
+//    	+ 2 * r.origin.y
+//    	+ r.origin.z * r.origin.z
+//    	- 1.0;
+
+enum e_bool	intersect_cone(t_primitive cp, t_ray r, double *current_z)
+{
+	//t_vec3 eye = vec3_substract(r.origin, cp.position);
+	double a = pow(r.direction.x, 2) + pow(r.direction.y, 2)
+		- pow(r.direction.z, 2) * cp.radius;
+	double b = 2 * (r.origin.x * r.direction.x
+	   + r.origin.y * r.direction.y - r.origin.z * r.direction.z * cp.radius);
+	double c = pow(r.origin.x, 2) + pow(r.origin.y, 2)
+    	- pow(r.origin.z, 2) * cp.radius;
+	//double a = r.direction.x * r.direction.x
+	//	+ r.direction.z * r.direction.z
+	//	- r.direction.y * r.direction.y;
+	//double b = 2 * r.origin.x * r.direction.x
+	//	+ 2 * r.direction.y
+	//	- 2 * r.origin.y * r.direction.y
+	//	+ 2 * r.origin.z * r.direction.z;
+	//double c = r.origin.x * r.origin.x
+	//	- r.origin.y * r.origin.y
+	//	+ 2 * r.origin.y
+	//	+ r.origin.z * r.origin.z
+	//	- 1.0;
+	//double a = pow(cos(cp.radius), 2) *
+	//	pow((r.direction.x + r.direction.z), 2) -
+	//	pow(sin(cp.radius), 2) *
+	//	pow(r.direction.y, 2);
+	//double b = 2 * pow(cos(cp.radius), 2) *
+	//	(r.direction.x * (eye.x) +
+	//		r.direction.z * (eye.z)) -
+	//	2 * pow(sin(cp.radius), 2) *
+	//	r.direction.y * (eye.y);
+	//double c = pow(cos(cp.radius), 2) *
+	//	pow(eye.x + eye.z, 2)
+	//	- pow(sin(cp.radius), 2) *
+	//	pow(eye.y, 2);
+	//double tmp = tan(cp.size * (M_PI / 180));
+	//double a = (r.direction.x * r.direction.x)
+	//	+ (r.direction.y * r.direction.y)
+    //	- ((r.direction.z * r.direction.z) * tmp);
+	//double b = (2.0 * eye.x * r.direction.x)
+	//	+ (2.0 * eye.y * r.direction.y)
+	//	- (2.0 * eye.z * r.direction.z * tmp);
+	//double c = (eye.x * eye.x) + (eye.y * eye.y)
+    //	- ((eye.z * eye.z) * tmp);
+	double	t[2];
+	double delta;
+	delta = sqrt((b * b) - (4.0 * a * c));
+	if (delta <= 0)
+		return (false);
+	t[0] = (-b - delta) / (2.0 * a);
+	t[1] = (-b + delta) / (2.0 * a);
 	//if (!Quadratic(a, b, c, &t[0], &t[1]))
 	//	return (false);
 	return (test_intersect(t, current_z));

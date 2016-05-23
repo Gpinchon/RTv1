@@ -89,3 +89,4 @@ t_vec3	compute_lightdir(t_light l, t_vec3 position);
 */
 enum e_bool	intersect_sphere(t_primitive s, t_ray r, double *current_z);
 enum e_bool	intersect_cylinder(t_primitive s, t_ray r, double *current_z);
+enum e_bool	intersect_cone(t_primitive cp, t_ray r, double *current_z);
