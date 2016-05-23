@@ -107,40 +107,6 @@ enum e_bool	intersect_cone(t_primitive cp, t_ray r, double *current_z)
 	   + r.origin.y * r.direction.y - r.origin.z * r.direction.z * cp.radius);
 	double c = pow(r.origin.x, 2) + pow(r.origin.y, 2)
     	- pow(r.origin.z, 2) * cp.radius;
-	//double a = r.direction.x * r.direction.x
-	//	+ r.direction.z * r.direction.z
-	//	- r.direction.y * r.direction.y;
-	//double b = 2 * r.origin.x * r.direction.x
-	//	+ 2 * r.direction.y
-	//	- 2 * r.origin.y * r.direction.y
-	//	+ 2 * r.origin.z * r.direction.z;
-	//double c = r.origin.x * r.origin.x
-	//	- r.origin.y * r.origin.y
-	//	+ 2 * r.origin.y
-	//	+ r.origin.z * r.origin.z
-	//	- 1.0;
-	//double a = pow(cos(cp.radius), 2) *
-	//	pow((r.direction.x + r.direction.z), 2) -
-	//	pow(sin(cp.radius), 2) *
-	//	pow(r.direction.y, 2);
-	//double b = 2 * pow(cos(cp.radius), 2) *
-	//	(r.direction.x * (eye.x) +
-	//		r.direction.z * (eye.z)) -
-	//	2 * pow(sin(cp.radius), 2) *
-	//	r.direction.y * (eye.y);
-	//double c = pow(cos(cp.radius), 2) *
-	//	pow(eye.x + eye.z, 2)
-	//	- pow(sin(cp.radius), 2) *
-	//	pow(eye.y, 2);
-	//double tmp = tan(cp.size * (M_PI / 180));
-	//double a = (r.direction.x * r.direction.x)
-	//	+ (r.direction.y * r.direction.y)
-    //	- ((r.direction.z * r.direction.z) * tmp);
-	//double b = (2.0 * eye.x * r.direction.x)
-	//	+ (2.0 * eye.y * r.direction.y)
-	//	- (2.0 * eye.z * r.direction.z * tmp);
-	//double c = (eye.x * eye.x) + (eye.y * eye.y)
-    //	- ((eye.z * eye.z) * tmp);
 	double	t[2];
 	double delta;
 	delta = sqrt((b * b) - (4.0 * a * c));

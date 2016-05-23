@@ -25,7 +25,7 @@ void	do_raytracer(t_point2 screen_size, t_rt rt)
 	c.direction = (t_vec3){0.001, 0.001, 1};
 	c.position = (t_vec3){0, 0, -1000};
 	s.position = (t_vec3){0, 0, 0};
-	s.type = SPHERE;
+	s.type = CONE;
 	s.radius = 90;
 	s.size = 1;
 	s.material.diffuse = (t_rgba){1, 0, 0, 1};
@@ -86,9 +86,9 @@ void	do_raytracer(t_point2 screen_size, t_rt rt)
 							});
 						else if (s.type == CONE)
 							normal = vec3_normalize((t_vec3){
-								(position.x + s.position.x),
-								(position.y + s.position.y),
-								(position.z + s.position.z)
+								(position.x - s.position.x),
+								0,
+								(position.z - s.position.z)
 							});
 						light_dir = compute_lightdir(l, position);
 						view_dir = vec3_normalize(vec3_substract(c.ray.origin, position));
