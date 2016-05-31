@@ -54,6 +54,7 @@ t_vec3	vec3_negate(t_vec3 v);
 /*
 ** Scalar math
 */
+double	vec3_length(t_vec3 v);
 /*
 ** Linear interpolation
 */

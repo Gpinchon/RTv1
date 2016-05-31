@@ -12,3 +12,8 @@ double		vec3_distance(t_vec3 v, t_vec3 v1)
 	double c = v1.z - v.z;
 	return (sqrt(a * a + b * b + c * c));
 }
+
+double		vec3_length(t_vec3 v)
+{
+	return (sqrt(v.x * v.x + v.y * v.y + v.z * v.z));
+}

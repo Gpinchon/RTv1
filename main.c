@@ -1,9 +1,10 @@
 # include <rt.h>
 # include <stdio.h>
-# define	SUPERSAMPLING	4
+# define	SUPERSAMPLING	2
 # define	SPHERE		0
 # define	CYLINDER	1
 # define	CONE		3
+# define	PLANE		4
 
 double		*get_current_z(t_depth_buffer *depth,
 	t_point2 screen_size, t_point2 current)
@@ -13,27 +14,30 @@ double		*get_current_z(t_depth_buffer *depth,
 		[(int)floor(depth->size.y / (float)screen_size.y * current.y)]);
 }
 
+
+
 void	do_raytracer(t_point2 screen_size, t_rt rt)
 {
 	t_point2	current;
 	t_vec2		current_float;
-	t_primitive	s;
+	t_primitive	p;
 	t_light		l;
 	t_rgb		final_color;
 	t_camera	c;
 
 	c.direction = (t_vec3){0.001, 0.001, 1};
 	c.position = (t_vec3){0, 0, -1000};
-	s.position = (t_vec3){0, 0, 0};
-	s.type = CONE;
-	s.radius = 90;
-	s.size = 1;
-	s.material.diffuse = (t_rgba){1, 0, 0, 1};
-	s.material.ambient = (t_rgba){0, 0, 0, 1};
-	s.material.specular = (t_rgba){1, 1, 1, 1};
-	s.material.spec_power = 10;
-	s.material.roughness = 1;
-	s.material.albedo = 1;
+	p.position = (t_vec3){0, 0, 0};
+	p.direction = (t_vec3){-0.5, 0, 0};
+	p.type = PLANE;
+	p.radius = 1;
+	p.size = 200;
+	p.material.diffuse = (t_rgba){1, 0, 0, 1};
+	p.material.ambient = (t_rgba){0, 0, 0, 1};
+	p.material.specular = (t_rgba){1, 1, 1, 1};
+	p.material.spec_power = 10;
+	p.material.roughness = 1;
+	p.material.albedo = 1;
 	l.type = POINT;
 	l.direction	= (t_vec3){0.5, -0.5, 1};
 	l.position = (t_vec3){-100, 100, -250};
@@ -61,53 +65,54 @@ void	do_raytracer(t_point2 screen_size, t_rt rt)
 					c.ray.origin = (t_vec3){c.position.x + coord.x, c.position.y + coord.y, c.position.z};
 					c.ray.direction = vec3_normalize(c.direction);
 					t_rgb color = rgb_divide(get_image_color(rt.image, current), 255);
-					if ((s.type == SPHERE && intersect_sphere(s, c.ray, current_z))
-					|| (s.type == CYLINDER && intersect_cylinder(s, c.ray, current_z))
-					|| (s.type == CONE && intersect_cone(s, c.ray, current_z)))
+					if ((p.type == SPHERE && intersect_sphere(p, c.ray, current_z))
+					|| (p.type == CYLINDER && intersect_cylinder(p, c.ray, current_z))
+					|| (p.type == CONE && intersect_cone(p, c.ray, current_z))
+					|| (p.type == PLANE && intersect_plane(p, c.ray, current_z)))
 					{
-						t_vec3		normal;
+						t_vec3		normal = p.direction;
 						t_vec3		position;
 						t_vec3		light_dir;
 						t_vec3		view_dir;
 						position.x = (c.ray.origin.x + c.ray.direction.x * *current_z);
 						position.y = (c.ray.origin.y + c.ray.direction.y * *current_z);
 						position.z = (c.ray.origin.z + c.ray.direction.z * *current_z);
-						if (s.type == CYLINDER)
+						if (p.type == CYLINDER)
 							normal = vec3_normalize((t_vec3){
-								(position.x - s.position.x) / s.radius,
+								(position.x - p.position.x) / p.radius,
 								0,
-								(position.z - s.position.z) / s.radius
+								(position.z - p.position.z) / p.radius
 							});
-						else if (s.type == SPHERE)
+						else if (p.type == SPHERE || p.type == PLANE)
 							normal = vec3_normalize((t_vec3){
-								(position.x - s.position.x) / s.radius,
-								(position.y - s.position.y) / s.radius,
-								(position.z - s.position.z) / s.radius
+								(position.x - p.position.x) / p.radius,
+								(position.y - p.position.y) / p.radius,
+								(position.z - p.position.z) / p.radius
 							});
-						else if (s.type == CONE)
+						else if (p.type == CONE)
 							normal = vec3_normalize((t_vec3){
-								(position.x - s.position.x),
+								(position.x - p.position.x),
 								0,
-								(position.z - s.position.z)
+								(position.z - p.position.z)
 							});
 						light_dir = compute_lightdir(l, position);
 						view_dir = vec3_normalize(vec3_substract(c.ray.origin, position));
-						double	diffuse = DIFFUSE(normal, view_dir, light_dir, s.material);
+						double	diffuse = DIFFUSE(normal, view_dir, light_dir, p.material);
 						if (l.type == SPOT)
 						{
 							float dotAngle = vec3_dot(vec3_normalize(l.direction), vec3_negate(light_dir));
 							diffuse *= dotAngle > cos(TO_RADIAN(l.spot_size / 2.0)) ? 1 : 0;
 						}
-						color = rgba_to_rgb(s.material.ambient);
+						color = rgba_to_rgb(p.material.ambient);
 						if (diffuse > 0)
 						{
-							float specular = SPECULAR(normal, view_dir, light_dir, s.material.spec_power / (1 + s.material.roughness));
+							float specular = SPECULAR(normal, view_dir, light_dir, p.material.spec_power / (1 + p.material.roughness));
 							float d = fmax(vec3_distance(l.position, position) - l.falloff, 0);
 							float attenuation = 1 / pow(d / l.falloff + 1, 2) * l.power;
 							attenuation = (attenuation - l.attenuation) / (1 - l.attenuation);
-							color = rgb_add(color, rgb_scale(rgb_multiply(l.color, rgba_to_rgb(s.material.diffuse)), diffuse));
+							color = rgb_add(color, rgb_scale(rgb_multiply(l.color, rgba_to_rgb(p.material.diffuse)), diffuse));
 							if (specular > 0 && attenuation > 0)
-								color = rgb_add(color, rgb_scale(rgba_to_rgb(s.material.specular), specular));
+								color = rgb_add(color, rgb_scale(rgba_to_rgb(p.material.specular), specular));
 							color = rgb_scale(color, attenuation);
 							color.r = clamp(color.r, 0, 1);
 							color.g = clamp(color.g, 0, 1);
