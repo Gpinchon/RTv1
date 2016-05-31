@@ -1,6 +1,6 @@
 # include <rt.h>
 # include <stdio.h>
-# define	SUPERSAMPLING	1
+# define	SUPERSAMPLING	4
 # define	SPHERE		0
 # define	CYLINDER	1
 # define	CONE		3
