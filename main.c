@@ -1,6 +1,6 @@
 # include <rt.h>
 # include <stdio.h>
-# define	SUPERSAMPLING	2
+# define	SUPERSAMPLING	1
 # define	SPHERE		0
 # define	CYLINDER	1
 # define	CONE		3
@@ -28,15 +28,15 @@ void	do_raytracer(t_point2 screen_size, t_rt rt)
 	c.direction = (t_vec3){0.001, 0.001, 1};
 	c.position = (t_vec3){0, 0, -1000};
 	p.position = (t_vec3){0, 0, 0};
-	p.direction = (t_vec3){-0.5, 0, 0};
-	p.type = PLANE;
-	p.radius = 1;
-	p.size = 200;
+	p.direction = (t_vec3){-1, -1, 0};
+	p.type = SPHERE;
+	p.radius = 100;
+	p.size = 500;
 	p.material.diffuse = (t_rgba){1, 0, 0, 1};
 	p.material.ambient = (t_rgba){0, 0, 0, 1};
 	p.material.specular = (t_rgba){1, 1, 1, 1};
-	p.material.spec_power = 10;
-	p.material.roughness = 1;
+	p.material.spec_power = 30;
+	p.material.roughness = 0;
 	p.material.albedo = 1;
 	l.type = POINT;
 	l.direction	= (t_vec3){0.5, -0.5, 1};
