@@ -1,5 +1,7 @@
 # define UCHAR unsigned char
 
+# pragma pack (1)
+
 typedef struct	s_point2
 {
 	int			x;
@@ -21,7 +23,6 @@ typedef struct	s_rgba
 	float		a;
 }				t_rgba;
 
-#pragma pack (1)
 typedef struct	s_generic
 {
 	void		*next;
@@ -30,7 +31,6 @@ typedef struct	s_generic
 	void		*mlx_ptr;
 }				t_generic;
 
-#pragma pack (1)
 typedef struct	s_img
 {
 	void		*next;
@@ -46,7 +46,6 @@ typedef struct	s_img
 	int			endian;
 }				t_img;
 
-#pragma pack (1)
 typedef struct	s_window
 {
 	void		*next;
@@ -64,6 +63,8 @@ typedef struct	s_framework
 	void		*windows;
 	void		*images;
 }				t_framework;
+
+# pragma pack ()
 
 /*
 ** Window tools

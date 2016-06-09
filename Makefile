@@ -35,9 +35,10 @@ clean:
 fclean: clean
 	rm -rf $(NAME)
 
-re:
+re: fclean $(NAME)
 	cd $(BASE_DIR) && $(MAKE) re
 	cd ./includes/adv_math/ && $(MAKE) re
-	fclean $(NAME)
+	$(MAKE)
+	
 
 .PHONY: all clean fclean re

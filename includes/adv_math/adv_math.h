@@ -6,6 +6,8 @@
 # define TO_RADIAN(x)	(x / 180.0f * M_PI)
 # include <math.h>
 
+# pragma pack (1)
+
 enum			e_bool
 {
 	false = 0x0, true = !false
@@ -18,56 +20,75 @@ typedef	struct		s_mat4
 
 typedef struct	s_vec2
 {
-	double		x;
-	double		y;
+	float		x;
+	float		y;
 }				t_vec2;
 
 typedef struct	s_vec3
 {
-	double		x;
-	double		y;
-	double		z;
+	float		x;
+	float		y;
+	float		z;
 }				t_vec3;
 
 typedef struct	s_vec4
 {
-	double		x;
-	double		y;
-	double		z;
-	double		w;
+	float		x;
+	float		y;
+	float		z;
+	float		w;
 }				t_vec4;
+
+# pragma pack ()
 
 /*
 ** Vector math
 */
-double	vec3_dot(t_vec3 v1, t_vec3 v2);
-double	vec3_distance(t_vec3 v, t_vec3 v1);
+float	vec3_dot(t_vec3 v1, t_vec3 v2);
+float	vec3_distance(t_vec3 v, t_vec3 v1);
 t_vec3	vec3_add(t_vec3 vector1, t_vec3 vector2);
 t_vec3	vec3_substract(t_vec3 v1, t_vec3 v2);
 t_vec3	vec3_multiply(t_vec3 v1, t_vec3 v2);
 t_vec3	vec3_cross(t_vec3 vector1, t_vec3 vector2);
 t_vec3	vec3_normalize(t_vec3 v);
-t_vec3	vec3_scale(t_vec3 v, double d);
-t_vec3	vec3_divide(t_vec3, double d);
+t_vec3	vec3_scale(t_vec3 v, float d);
+t_vec3	vec3_divide(t_vec3, float d);
 t_vec3	vec3_abs(t_vec3 v);
 t_vec3	vec3_negate(t_vec3 v);
+float	vec3_length(t_vec3 v);
+/*
+** Linear Interpolation
+*/
+t_vec3	vec3_lerp(t_vec3 start, t_vec3 end, float percent);
+/*
+** Smooth Interpolation
+*/
+t_vec3	vec3_smoothlerp(t_vec3 start, t_vec3 end, float percent);
+/*
+** Spherical Interpolation
+*/
+t_vec3	vec3_slerp(t_vec3 start, t_vec3 end, float percent);
+/*
+** Normalized Interpolation
+*/
+t_vec3	vec3_nlerp(t_vec3 start, t_vec3 end, float percent);
+
+
 /*
 ** Scalar math
-*/
-double	vec3_length(t_vec3 v);
-/*
 ** Linear interpolation
 */
 float	float_lerp(float start, float end, float percent);
 /*
-** Quadratic interpolation
+** Smooth interpolation
 */
-float	float_qlerp(float start, float end, float amount);
+float	float_smoothlerp(float start, float end, float amount);
 /*
 ** OpenGL-like step
 */
 float	float_step(float a, float x);
 enum e_bool	double_equal(double a, double b);
+enum e_bool	float_equal(float a, float b);
 /*
 ** Matrix functions
 */

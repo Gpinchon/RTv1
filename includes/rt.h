@@ -9,6 +9,11 @@
 # define	DIRECTIONAL		0
 # define	SPOT			1
 # define	POINT			2
+/*
+** Structure types
+*/
+# define	PRIMITIVE		sizeof(t_light)
+# define	LIGHT			sizeof(t_primitive)
 
 typedef struct	s_mtl
 {
@@ -21,20 +26,40 @@ typedef struct	s_mtl
 	float		refl;
 }				t_mtl;
 
-typedef struct	s_generic_prim
+typedef struct	s_gen_struct
 {
-	int			type;
-}				t_generic_prim;
+	UCHAR		struct_type;
+	struct s_gen_struct	*next;
+	struct s_gen_struct	*prev;
+}				t_gen_struct;
 
 typedef	struct	s_primitive
 {
-	int			type;
+	UCHAR		struct_type;
+	struct s_primitive	*next;
+	struct s_primitive	*prev;
+	UCHAR		type;
 	t_mtl		material;
 	t_vec3		position;
 	t_vec3		direction;
-	double		radius;
-	double		size;
+	float		radius;
+	float		size;
 }				t_primitive;
+
+typedef struct	s_light
+{
+	UCHAR	struct_type;
+	struct s_light	*next;
+	struct s_light	*prev;
+	UCHAR	type;
+	float	power;
+	float	attenuation;
+	float	falloff;
+	float	spot_size;
+	t_rgb	color;
+	t_vec3	position;
+	t_vec3	direction;
+}				t_light;
 
 typedef struct	s_ray
 {
@@ -44,23 +69,18 @@ typedef struct	s_ray
 
 typedef struct	s_camera
 {
+	float	fov;
 	t_vec3	position;
 	t_vec3	direction;
 	t_ray	ray;
-	float	fov;
 }				t_camera;
 
-typedef struct	s_light
+typedef struct	s_scene
 {
-	float	power;
-	float	attenuation;
-	float	falloff;
-	float	spot_size;
-	int		type;
-	t_rgb	color;
-	t_vec3	position;
-	t_vec3	direction;
-}				t_light;
+	t_camera	camera;
+	t_light		*lights;
+	t_primitive	*primitives;
+}				t_scene;
 
 typedef struct	s_depth_buffer
 {
@@ -77,7 +97,7 @@ typedef struct	s_rt
 }				t_rt;
 
 /*
-** Light comutation functions
+** Light computation functions
 */
 float	trowbridge_reitz_specular(t_vec3 normal, t_vec3 view, t_vec3 light, float spec_power);
 float	blinn_phong_specular(t_vec3 normal, t_vec3 view, t_vec3 light, float spec_power);

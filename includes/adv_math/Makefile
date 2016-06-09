@@ -3,6 +3,7 @@ SRC		=	./src/vector3/normalize.c			\
 			./src/vector3/operations.c			\
 			./src/vector3/scalar_operations.c	\
 			./src/float/interpolate.c			\
+			./src/float/operations.c			\
 			./src/double/operations.c			\
 			./src/matrix/initialisation.c		\
 			./src/matrix/projection.c			\

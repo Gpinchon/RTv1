@@ -14,8 +14,6 @@ double		*get_current_z(t_depth_buffer *depth,
 		[(int)floor(depth->size.y / (float)screen_size.y * current.y)]);
 }
 
-
-
 void	do_raytracer(t_point2 screen_size, t_rt rt)
 {
 	t_point2	current;
@@ -29,7 +27,7 @@ void	do_raytracer(t_point2 screen_size, t_rt rt)
 	c.position = (t_vec3){0, 0, -1000};
 	p.position = (t_vec3){0, 0, 0};
 	p.direction = (t_vec3){-1, -1, 0};
-	p.type = SPHERE;
+	p.type =  CYLINDER;
 	p.radius = 100;
 	p.size = 500;
 	p.material.diffuse = (t_rgba){1, 0, 0, 1};
@@ -157,6 +155,7 @@ t_depth_buffer	*new_depth_buffer(t_point2 size)
 
 int main()
 {
+	printf("%lu, %lu\n", PRIMITIVE, LIGHT);
 	t_rt	rt;
 	rt.framework = init_mlx_framework();
 	rt.window = new_window(rt.framework, WIDTH, HEIGHT, "RTv1");
