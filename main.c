@@ -34,7 +34,7 @@ void	do_raytracer(t_point2 screen_size, t_rt rt)
 	p.material.ambient = (t_rgba){0, 0, 0, 1};
 	p.material.specular = (t_rgba){1, 1, 1, 1};
 	p.material.spec_power = 30;
-	p.material.roughness = 0;
+	p.material.roughness = 1;
 	p.material.albedo = 1;
 	l.type = POINT;
 	l.direction	= (t_vec3){0.5, -0.5, 1};
@@ -153,6 +153,21 @@ t_depth_buffer	*new_depth_buffer(t_point2 size)
 	return (n);
 }
 
+void		*destroy_depth_buffer(t_depth_buffer *d)
+{
+	if (!d || !d->buffer)
+		return d;
+	while (d->size.x)
+	{
+		if (d->buffer[d->size.x - 1])
+			free(d->buffer[d->size.x - 1]);
+		d->size.x--;
+	}
+	free(d->buffer);
+	free(d);
+	return (NULL);
+}
+
 int main()
 {
 	printf("%lu, %lu\n", PRIMITIVE, LIGHT);
@@ -163,6 +178,7 @@ int main()
 	rt.depth = new_depth_buffer((t_point2){512, 512});
 	fill_image(rt.image, (t_rgb){127, 127, 127});
 	do_raytracer((t_point2){WIDTH, HEIGHT}, rt);
+	rt.depth = destroy_depth_buffer(rt.depth);
 	attach_image_to_window(rt.image, rt.window);
 	loop_callback(rt.framework, refresh_window, rt.window);
 	init_loop(rt.framework);

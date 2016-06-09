@@ -4,21 +4,21 @@
 int		attach_image_to_window(t_img *img, t_window *window)
 {
 	if (!window)
-		return (-1);
-	else if (!img)
-		return (-2);
+		return (NULL_WINDOW_POINTER);
+	if (!img)
+		return (NULL_IMAGE_POINTER);
 	window->attached_image = img;
-	return (0);
+	return (ALL_OK);
 }
 
 int		put_rgb_to_window(t_window *window, t_point2 p, t_rgb c)
 {
 	if (!window)
-		return (-1);
+		return (NULL_WINDOW_POINTER);
 	else if (!window->attached_image)
-		return (-2);
+		return (NULL_IMAGE_POINTER);
 	put_rgb_to_image(window->attached_image, p, c);
-	return (0);
+	return (ALL_OK);
 }
 
 void	destroy_window(t_window *window)
@@ -61,19 +61,22 @@ void	*add_window(t_framework *framework, t_window *window)
 int		refresh_window(t_window *window)
 {
 	if (!window)
-		return (-1);
+		return (NULL_WINDOW_POINTER);
 	if (!window->attached_image)
-		return (-2);
+		return (NULL_IMAGE_POINTER);
 	put_image_to_window(window->attached_image, window, (t_point2){0, 0});
-	return (0);
+	return (ALL_OK);
 }
 
 void	*new_window(t_framework *framework, int width, int height, char *name)
 {
 	t_window *win;
 
-	if (!framework->mlx_ptr)
+	if (!framework || !framework->mlx_ptr)
+	{
+		FRAMEWORK_DEBUG(!framework ? NULL_FRAMEWORK_POINTER : NULL_MLX_POINTER);
 		return (NULL);
+	}
 	win = ft_memalloc(sizeof(t_window));
 	win->mlx_window = mlx_new_window(framework->mlx_ptr, width, height, name);
 	win->mlx_ptr = framework->mlx_ptr;

@@ -5,7 +5,8 @@ SRC		=	images.c	\
 			framework.c \
 			callback.c	\
 			rgba.c		\
-			rgb.c
+			rgb.c		\
+			errors.c
 
 OBJ		= $(SRC:.c=.o)
 CC		= gcc
@@ -19,7 +20,7 @@ $(info $(shell uname) detected !)
 MLX_PATH = ./minilibx_xorg/
 LIBS	= -L ./ -L $(MLX_PATH) -L ./libft/ -lm -lft -lmlx -lXext -lX11
 endif
-CFLAGS	= -Ofast -Wall -Wextra -I ./ -I $(MLX_PATH) -I ./libft/
+CFLAGS	= -Ofast -Wall -Wextra -Werror -I ./ -I $(MLX_PATH) -I ./libft/
 
 $(NAME): $(OBJ)
 	ar -rc $(NAME) $(OBJ)
