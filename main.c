@@ -77,7 +77,7 @@ void	do_raytracer(t_point2 size, t_rt rt)
 	t_camera	c;
 
 	c.direction = (t_vec3){0.001, 0.001, 1};
-	c.position = (t_vec3){0, 0, -250};
+	c.position = (t_vec3){0, 0, -500};
 	p.position = (t_vec3){100, 100, 0};
 	p.direction = (t_vec3){0, -1, 0};
 	p.type = SPHERE;
