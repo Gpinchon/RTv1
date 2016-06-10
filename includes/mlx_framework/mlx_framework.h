@@ -6,32 +6,35 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/09 18:24:26 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/06/09 19:06:53 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/06/10 16:52:33 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef MLX_FRAMEWORK_H
 # define MLX_FRAMEWORK_H
 # define UCHAR unsigned char
+# define GSTRUCT				struct s_generic
 
 /*
 ** Error codes
 */
-# define MAX_ERROR				10
-# define ALL_OK					0
-# define NULL_WINDOW_POINTER	1
-# define NULL_IMAGE_POINTER		2
-# define NULL_FRAMEWORK_POINTER	3
-# define NULL_MLX_POINTER		4
-# define MALLOC_ERROR			5
-# define WRONG_IMAGE_COORD		6
+# define MAX_ERROR				16
+# define ALL_OK					0x0
+# define NULL_WINDOW_POINTER	0x1
+# define NULL_IMAGE_POINTER		0x2
+# define NULL_FRAMEWORK_POINTER	0x3
+# define NULL_MLX_POINTER		0x4
+# define MALLOC_ERROR			0x5
+# define WRONG_IMAGE_COORD		0x6
+# define NO_WINDOWS				0x7
+# define NULL_OBJECT_POINTER	0x8
 
 char	*g_errors[MAX_ERROR];
-# define DEBUG
+
 # ifdef DEBUG
-#  define FRAMEWORK_DEBUG(c)	print_error(c)
+#  define FRAMEWORK_DEBUG(cond, c, fn)	if(cond){print_error(c);ft_putstr(fn);}
 # else
-#  define FRAMEWORK_DEBUG(c)
+#  define FRAMEWORK_DEBUG(cond, c, fn)
 # endif
 
 # pragma pack (1)
@@ -59,8 +62,8 @@ typedef struct	s_rgba
 
 typedef struct	s_generic
 {
-	void		*next;
-	void		*prev;
+	GSTRUCT		*next;
+	GSTRUCT		*prev;
 	char		*name;
 	void		*mlx_ptr;
 }				t_generic;
@@ -96,7 +99,6 @@ typedef struct	s_framework
 	void		*mlx_ptr;
 	void		*windows;
 	void		*images;
-	char		*errors[MAX_ERROR];
 }				t_framework;
 
 # pragma pack ()
@@ -107,23 +109,23 @@ typedef struct	s_framework
 void			*clear_window(t_window *window);
 void			*new_window(t_framework *f, int width, int height, char *name);
 void			*add_window(t_framework *framework, t_window *window);
-void			destroy_window(t_window *window);
-void			destroy_windows(t_window *from_windows);
-int				attach_image_to_window(t_img *img, t_window *window);
-int				put_rgb_to_window(t_window *window, t_point2 p, t_rgb c);
+void			*destroy_window(t_framework *framework, t_window *window);
+void			destroy_windows(t_framework *framework);
+void			attach_image_to_window(t_img *img, t_window *window);
+void			put_rgb_to_window(t_window *window, t_point2 p, t_rgb c);
 int				refresh_window(t_window *window);
 /*
 ** Image tools
 */
 t_rgb			get_image_color(t_img *img, t_point2 p);
-int				put_rgb_to_image(t_img *img, t_point2 p, t_rgb c);
-int				put_rgba_to_image(t_img *img, t_point2 p, t_rgba c);
+void			put_rgb_to_image(t_img *img, t_point2 p, t_rgb c);
+void			put_rgba_to_image(t_img *img, t_point2 p, t_rgba c);
 void			*clear_image(t_img *img);
 void			*fill_image(t_img *img, t_rgb color);
 void			*new_image(t_framework *f, int width, int height, char *name);
 void			*put_image_to_window(t_img *img, t_window *win, t_point2 pos);
-int				destroy_image(t_img *img);
-int				destroy_images(t_img *from_img);
+void			destroy_image(t_img *img);
+void			destroy_images(t_img *from_img);
 /*
 ** Object management tools
 */
@@ -132,9 +134,9 @@ void			*append_object(t_generic *new_object, t_generic *from_object);
 /*
 ** Framework tools
 */
-int				init_loop(t_framework *framework);
+void			init_loop(t_framework *framework);
 void			*init_mlx_framework();
-int				destroy_framework(t_framework *framework);
+void			destroy_framework(t_framework *framework);
 void			*get_mlx_ptr(t_framework *framework);
 /*
 ** Error Management

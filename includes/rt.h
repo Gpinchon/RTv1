@@ -2,18 +2,18 @@
 # include <mlx_framework.h>
 # include <adv_math.h>
 
-# define	WIDTH			1024
-# define	HEIGHT			768
+# define	WIDTH			512
+# define	HEIGHT			512
 # define	DIFFUSE			oren_nayar_diffuse
 # define	SPECULAR		trowbridge_reitz_specular
-# define	DIRECTIONAL		0
-# define	SPOT			1
-# define	POINT			2
+# define	DIRECTIONAL		0x0
+# define	SPOT			0x1
+# define	POINT			0x2
 /*
 ** Structure types
 */
-# define	PRIMITIVE		sizeof(t_light)
-# define	LIGHT			sizeof(t_primitive)
+# define	PRIMITIVE		0
+# define	LIGHT			1
 
 typedef struct	s_mtl
 {

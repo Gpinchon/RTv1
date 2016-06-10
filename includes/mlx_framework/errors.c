@@ -18,6 +18,7 @@ void	init_errors()
 	g_errors[NULL_MLX_POINTER] = "Null minilibx pointer\n";
 	g_errors[MALLOC_ERROR] = "Malloc Error\n";
 	g_errors[WRONG_IMAGE_COORD] = "Wrong image coordinates\n";
+	g_errors[NO_WINDOWS] = "No windows found\n";
 }
 
 void	print_error(int error_code)
