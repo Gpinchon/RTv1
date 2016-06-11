@@ -44,15 +44,17 @@ typedef struct	s_vec4
 /*
 ** Vector math
 */
-float	vec3_dot(t_vec3 v1, t_vec3 v2);
+float	vec3_dot(t_vec3 v, t_vec3 v1);
 float	vec3_distance(t_vec3 v, t_vec3 v1);
-t_vec3	vec3_add(t_vec3 vector1, t_vec3 vector2);
-t_vec3	vec3_substract(t_vec3 v1, t_vec3 v2);
-t_vec3	vec3_multiply(t_vec3 v1, t_vec3 v2);
-t_vec3	vec3_cross(t_vec3 vector1, t_vec3 vector2);
+t_vec3	vec3_add(t_vec3 v, t_vec3 v1);
+t_vec3	vec3_substract(t_vec3 v, t_vec3 v1);
+t_vec3	vec3_multiply(t_vec3 v, t_vec3 v1);
+t_vec3	vec3_cross(t_vec3 v, t_vec3 v1);
 t_vec3	vec3_normalize(t_vec3 v);
-t_vec3	vec3_scale(t_vec3 v, float d);
-t_vec3	vec3_divide(t_vec3, float d);
+t_vec3	vec3_scale(t_vec3 v, t_vec3 v1);
+t_vec3	vec3_divide(t_vec3, t_vec3 v1);
+t_vec3	vec3_fscale(t_vec3 v, float d);
+t_vec3	vec3_fdivide(t_vec3 v, float d);
 t_vec3	vec3_abs(t_vec3 v);
 t_vec3	vec3_negate(t_vec3 v);
 float	vec3_length(t_vec3 v);

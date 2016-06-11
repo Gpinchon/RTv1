@@ -24,6 +24,8 @@ CFLAGS	= -Ofast -Wall -Wextra -Werror -I ./ -I $(MLX_PATH) -I ./libft/
 
 $(NAME): $(OBJ)
 	ar -rc $(NAME) $(OBJ)
+	cd ./libft/ && $(MAKE)
+	cd $(MLX_PATH) && $(MAKE)
 
 all: $(NAME)
 	cd ./libft/ && $(MAKE) all
