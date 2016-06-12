@@ -87,9 +87,9 @@ void	do_raytracer(t_point2 size, t_rt rt)
 	c.direction = (t_vec3){0, 0, 1};
 	c.position = (t_vec3){10, 10, -500};
 	p.position = (t_vec3){0, 0, 0};
-	p.direction = (t_vec3){0, -1, 0};
-	p.type = CONE;
-	p.radius = 0.5;
+	p.direction = (t_vec3){-1, -1, 0};
+	p.type = CYLINDER;
+	p.radius = 100;
 	p.size = 200;
 	p.material.diffuse = (t_rgba){0, 1, 1, 1};
 	p.material.ambient = (t_rgba){0, 0, 0, 1};
