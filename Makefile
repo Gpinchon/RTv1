@@ -36,8 +36,8 @@ fclean: clean
 	rm -rf $(NAME)
 
 re: fclean $(NAME)
-	cd $(BASE_DIR) && $(MAKE) re
-	cd ./includes/adv_math/ && $(MAKE) re
+	cd $(BASE_DIR) && $(MAKE) fclean
+	cd ./includes/adv_math/ && $(MAKE) fclean
 	$(MAKE)
 	
 
