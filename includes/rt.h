@@ -2,8 +2,8 @@
 # include <mlx_framework.h>
 # include <adv_math.h>
 
-# define	WIDTH			1024
-# define	HEIGHT			768
+# define	WIDTH			512
+# define	HEIGHT			512
 # define	DIFFUSE			oren_nayar_diffuse
 # define	SPECULAR		trowbridge_reitz_specular
 # define	DIRECTIONAL		0x0
@@ -108,6 +108,6 @@ t_vec3	compute_lightdir(t_light l, t_vec3 position);
 ** Primitive intersection funcitons
 */
 enum e_bool	intersect_sphere(t_primitive s, t_ray r, double *current_z);
-enum e_bool	intersect_cylinder(t_primitive s, t_ray r, double *current_z);
-enum e_bool	intersect_cone(t_primitive cp, t_ray r, double *current_z);
+enum e_bool	intersect_inf_cylinder(t_primitive s, t_ray r, double *current_z);
+enum e_bool	intersect_inf_cone(t_primitive cp, t_ray r, double *current_z);
 enum e_bool	intersect_plane(t_primitive cp, t_ray ray, double *current_z);

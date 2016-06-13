@@ -2,8 +2,8 @@
 # include <stdio.h>
 # define	SUPERSAMPLING	2
 # define	SPHERE		0x0
-# define	CYLINDER	0x1
-# define	CONE		0x3
+# define	INFCYLINDER	0x1
+# define	INFCONE		0x3
 # define	PLANE		0x4
 
 double		*get_current_z(t_depth_buffer *depth,
@@ -12,6 +12,11 @@ double		*get_current_z(t_depth_buffer *depth,
 	return (&depth->buffer
 		[(int)floor(depth->size.x / (float)screen_size.x * current.x)]
 		[(int)floor(depth->size.y / (float)screen_size.y * current.y)]);
+}
+
+t_vec3	vec3_proj_vec3(t_vec3 v, t_vec3 v1)
+{
+	return (vec3_fscale(v1, vec3_dot(v, v1) / vec3_dot(v1, v1)));
 }
 
 t_rgb	compute_point_color(t_primitive p, t_camera c, t_light l, double *current_z)
@@ -25,17 +30,11 @@ t_rgb	compute_point_color(t_primitive p, t_camera c, t_light l, double *current_
 	position.x = (c.ray.origin.x + c.ray.direction.x * *current_z);
 	position.y = (c.ray.origin.y + c.ray.direction.y * *current_z);
 	position.z = (c.ray.origin.z + c.ray.direction.z * *current_z);
-	if (p.type == CYLINDER)
+	if (p.type == INFCYLINDER)
 	{
-		float len = vec3_length(vec3_substract(position, c.ray.origin));
-		float m = vec3_dot(c.ray.direction, p.direction) * len;
-		m += vec3_dot(vec3_substract(c.ray.origin, p.position), p.direction);
-		normal = vec3_substract(position, p.position);
-		normal = vec3_normalize(vec3_substract(normal, vec3_fscale(p.direction, m)));
-		//normal = vec3_normalize(vec3_cross((t_vec3){
-		//	(position.x - p.position.x) / p.radius,
-		//	(position.y - p.position.y) / p.radius,
-		//	(position.z - p.position.z) / p.radius}, p.direction));
+		t_vec3	co = vec3_substract(position, p.position);
+		t_vec3	vpersp = vec3_substract(co, vec3_proj_vec3(co, p.direction));
+		normal = vec3_normalize(vec3_add(vpersp, vec3_normalize(vpersp)));
 	}
 	else if (p.type == SPHERE)
 		normal = vec3_normalize((t_vec3){
@@ -45,10 +44,10 @@ t_rgb	compute_point_color(t_primitive p, t_camera c, t_light l, double *current_
 		});
 	else if (p.type == PLANE)
 		normal = vec3_normalize(p.direction);
-	else if (p.type == CONE)
+	else if (p.type == INFCONE)
 		normal = vec3_fdivide(vec3_normalize((t_vec3){
-					(position.x - p.position.x), 0,
-					(position.z - p.position.z)
+					(position.x - p.position.x), (position.y - p.position.y),
+					-tan(TO_RADIAN(p.radius)) * position.z - p.position.z
 				}), p.radius);
 	light_dir = compute_lightdir(l, position);
 	view_dir = vec3_normalize(vec3_substract(c.ray.origin, position));
@@ -86,18 +85,18 @@ void	do_raytracer(t_point2 size, t_rt rt)
 
 	c.direction = (t_vec3){0, 0, 1};
 	c.position = (t_vec3){10, 10, -500};
-	p.position = (t_vec3){0, 0, 0};
-	p.direction = (t_vec3){-1, -1, 0};
-	p.type = CYLINDER;
-	p.radius = 100;
+	p.position = (t_vec3){-100, -100, 0};
+	p.direction = (t_vec3){0, 1, 0};
+	p.type = INFCONE;
+	p.radius = 10;
 	p.size = 200;
 	p.material.diffuse = (t_rgba){0, 1, 1, 1};
 	p.material.ambient = (t_rgba){0, 0, 0, 1};
 	p.material.specular = (t_rgba){1, 1, 1, 1};
-	p.material.spec_power = 80;
+	p.material.spec_power = 30;
 	p.material.roughness = 0.5;
 	p.material.albedo = 1;
-	l.type = POINT;
+	l.type = DIRECTIONAL;
 	l.direction	= (t_vec3){0.5, -0.5, 200};
 	l.position = (t_vec3){-100, 100, -250};
 	l.color = (t_rgb){1, 1, 1};
@@ -127,7 +126,7 @@ void	do_raytracer(t_point2 size, t_rt rt)
 					//	c.position.y + coord.y,
 					//	c.position.z};
 					//c.ray.direction = vec3_normalize(c.direction);
-					float fovx = TO_RADIAN(30);
+					float fovx = TO_RADIAN(45);
 					float fovy = (float)size.y / (float)size.x * fovx;
 					t_vec2	coord = (t_vec2){(size.x - 2 * fcur.x) / size.x, (size.y - 2 * fcur.y) / size.y};
 					c.ray.origin = (t_vec3){
@@ -141,8 +140,8 @@ void	do_raytracer(t_point2 size, t_rt rt)
 					};
 					t_rgb color = rgb_divide(get_image_color(rt.image, current), 255);
 					if ((p.type == SPHERE && intersect_sphere(p, c.ray, current_z))
-					|| (p.type == CYLINDER && intersect_cylinder(p, c.ray, current_z))
-					|| (p.type == CONE && intersect_cone(p, c.ray, current_z))
+					|| (p.type == INFCYLINDER && intersect_inf_cylinder(p, c.ray, current_z))
+					|| (p.type == INFCONE && intersect_inf_cone(p, c.ray, current_z))
 					|| (p.type == PLANE && intersect_plane(p, c.ray, current_z)))
 					{
 						color = compute_point_color(p, c, l, current_z);
