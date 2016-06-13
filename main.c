@@ -16,7 +16,7 @@ double		*get_current_z(t_depth_buffer *depth,
 
 t_vec3	vec3_proj_vec3(t_vec3 v, t_vec3 v1)
 {
-	return (vec3_fscale(v1, vec3_dot(v, v1) / vec3_dot(v1, v1)));
+	return (vec3_scale(v1, vec3_dot(v, v1) / vec3_dot(v1, v1)));
 }
 
 t_rgb	compute_point_color(t_primitive p, t_camera c, t_light l, double *current_z)
@@ -86,7 +86,7 @@ void	do_raytracer(t_point2 size, t_rt rt)
 	c.direction = (t_vec3){0, 0, 1};
 	c.position = (t_vec3){10, 10, -500};
 	p.position = (t_vec3){-100, -100, 0};
-	p.direction = (t_vec3){0, 1, 0};
+	p.direction = (t_vec3){1, 0, 0.5};
 	p.type = INFCONE;
 	p.radius = 10;
 	p.size = 200;

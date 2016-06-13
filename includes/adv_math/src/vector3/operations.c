@@ -36,15 +36,6 @@ t_vec3	vec3_cross(t_vec3 vector1, t_vec3 vector2)
 	});
 }
 
-t_vec3	vec3_scale(t_vec3 v, t_vec3 v1)
-{
-	return ((t_vec3){
-		v.x * v1.x,
-		v.y * v1.y,
-		v.z * v1.z
-	});
-}
-
 t_vec3	vec3_divide(t_vec3 v, t_vec3 v1)
 {
 	return ((t_vec3){
@@ -54,7 +45,7 @@ t_vec3	vec3_divide(t_vec3 v, t_vec3 v1)
 	});
 }
 
-t_vec3	vec3_fscale(t_vec3 v, float d)
+t_vec3	vec3_scale(t_vec3 v, float d)
 {
 	return ((t_vec3){
 		v.x * d,
