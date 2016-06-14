@@ -260,6 +260,10 @@ enum e_bool	intersect_plane(t_primitive cp, t_ray r, double *current_z)
 	t = -m / d;
 	if (t <= 0)
 		return (false);
-	*current_z = t;
-	return (true);
+	if (t < *(current_z) || *(current_z) == -1)
+	{
+		*current_z = t;
+		return (true);
+	}
+	return (false);
 }
