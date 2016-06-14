@@ -1,4 +1,6 @@
 # include <rt.h>
+#include <stdio.h>
+
 
 enum e_bool	test_intersect(double t[2], double *current_z)
 {
@@ -8,21 +10,22 @@ enum e_bool	test_intersect(double t[2], double *current_z)
 	if ((t[0] > DOUBLE_ZERO)
 	&& (t[0] < *(current_z) || double_equal(*(current_z), t[0])))
 	{
+		printf("t0 %f, %f\n", *(current_z), t[0]);
 		*(current_z) = t[0];
 		retvalue = true;
+		printf("%f\n", *(current_z));
 	}
 	if (!double_equal(t[0], t[1])
 	&& (t[1] > DOUBLE_ZERO) 
 	&& (t[1] < *(current_z) || double_equal(*(current_z), t[1])))
 	{
+		printf("t1 %f, %f\n", *(current_z), t[1]);
 		*(current_z) = t[1];
 		retvalue = true;
+		printf("%f\n", *(current_z));
 	}
 	return (retvalue);
 }
-
-#include <stdio.h>
-
 
 enum e_bool	intersect_sphere(t_primitive s, t_ray r, double *current_z)
 {
@@ -76,7 +79,7 @@ enum e_bool Quadratic(double A, double B, double C, double *t0, double *t1)
 //	double	t[2];
 //	double delta;
 //	delta = sqrt((b * b) - (4.0 * a * c));
-//	if (delta < 0)
+//	if (delta <= 0)
 //		return (false);
 //	t[0] = (-b - delta) / (2.0 * a);
 //	t[1] = (-b + delta) / (2.0 * a);
@@ -128,7 +131,7 @@ enum e_bool Quadratic(double A, double B, double C, double *t0, double *t1)
 //	double	t[2];
 //	double delta;
 //	delta = sqrt((b * b) - (4.0 * a * c));
-//	if (delta < 0)
+//	if (delta <= 0)
 //		return (false);
 //	t[0] = (-b - (delta)) / (2.0 * a);
 //	t[1] = (-b + (delta)) / (2.0 * a);
@@ -146,7 +149,7 @@ enum e_bool	intersect_inf_cylinder(t_primitive cp, t_ray r, double *current_z)
 	double	t[2];
 	double delta;
 	delta = sqrt((b * b) - (4.0 * a * c));
-	if (delta < 0)
+	if (delta <= 0)
 		return (false);
 	t[0] = (-b - (delta)) / (2.0 * a);
 	t[1] = (-b + (delta)) / (2.0 * a);
@@ -259,7 +262,7 @@ enum e_bool	intersect_plane(t_primitive cp, t_ray r, double *current_z)
 		return (false);
 	d = vec3_dot(cp.direction, r.direction);
 	t = -m / d;
-	if (t < 0)
+	if (t <= 0)
 		return (false);
 	*current_z = t;
 	return (true);

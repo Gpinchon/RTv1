@@ -14,6 +14,24 @@ double		*get_current_z(t_depth_buffer *depth,
 		[(int)floor(depth->size.y / (float)screen_size.y * current.y)]);
 }
 
+void		put_current_z(t_depth_buffer *depth,
+	t_point2 screen_size, t_point2 current, double value)
+{
+	//if (value != depth->buffer
+	//		[(int)floor(depth->size.x / (float)screen_size.x * current.x)]
+	//		[(int)floor(depth->size.y / (float)screen_size.y * current.y)])
+	//{
+		printf("%f\n", value);
+		printf("%f\n", depth->buffer
+			[(int)floor(depth->size.x / (float)screen_size.x * current.x)]
+			[(int)floor(depth->size.y / (float)screen_size.y * current.y)]);
+		printf("woot\n");
+	//}
+	//depth->buffer
+	//	[(int)floor(depth->size.x / (float)screen_size.x * current.x)]
+	//	[(int)floor(depth->size.y / (float)screen_size.y * current.y)] = value;
+}
+
 t_vec3	vec3_proj_vec3(t_vec3 v, t_vec3 v1)
 {
 	return (vec3_scale(v1, vec3_dot(v, v1) / vec3_dot(v1, v1)));
@@ -45,10 +63,12 @@ t_rgb	compute_point_color(t_primitive p, t_camera c, t_light l, double *current_
 	else if (p.type == PLANE)
 		normal = vec3_normalize(p.direction);
 	else if (p.type == INFCONE)
-		normal = vec3_fdivide(vec3_normalize((t_vec3){
-					(position.x - p.position.x), (position.y - p.position.y),
-					-tan(TO_RADIAN(p.radius)) * position.z - p.position.z
-				}), p.radius);
+		normal = vec3_normalize((t_vec3){(position.x - p.position.x) * (p.direction.x == 0), (position.y - p.position.y) * (p.direction.y == 0), (position.z - p.position.z) * (p.direction.z == 0)});
+		//normal = vec3_normalize(vec3_substract(position, p.position));
+		//normal = vec3_fdivide(vec3_normalize((t_vec3){
+		//			(position.x - p.position.x), (position.y - p.position.y),
+		//			-tan(TO_RADIAN(p.radius)) * position.z - p.position.z
+		//		}), p.radius);
 	light_dir = compute_lightdir(l, position);
 	view_dir = vec3_normalize(vec3_substract(c.ray.origin, position));
 	double	diffuse = DIFFUSE(normal, view_dir, light_dir, p.material);
@@ -60,10 +80,14 @@ t_rgb	compute_point_color(t_primitive p, t_camera c, t_light l, double *current_
 	color = rgba_to_rgb(p.material.ambient);
 	if (diffuse > 0)
 	{
-		float specular = SPECULAR(normal, view_dir, light_dir, p.material.spec_power / (1 + p.material.roughness));
+		float specular = SPECULAR(normal, view_dir, light_dir, p.material.spec_power) * (1 - p.material.roughness);
 		float d = fmax(vec3_distance(l.position, position) - l.falloff, 0);
-		float attenuation = 1 / pow(d / l.falloff + 1, 2) * l.power;
-		attenuation = (attenuation - l.attenuation) / (1 - l.attenuation);
+		float attenuation = 1;
+		if (l.type != DIRECTIONAL)
+		{
+			attenuation = 1 / pow(d / l.falloff + 1, 2) * l.power;
+			attenuation = (attenuation - l.attenuation) / (1 - l.attenuation);
+		}
 		color = rgb_add(color, rgb_scale(rgb_divide(rgb_add(l.color, rgba_to_rgb(p.material.diffuse)), 1), diffuse));
 		if (specular > 0 && attenuation > 0)
 			color = rgb_add(color, rgb_scale(rgb_multiply(l.color, rgba_to_rgb(p.material.specular)), specular));
@@ -78,32 +102,43 @@ t_rgb	compute_point_color(t_primitive p, t_camera c, t_light l, double *current_
 void	do_raytracer(t_point2 size, t_rt rt)
 {
 	t_point2	current;
-	t_primitive	p;
+	t_primitive	p[2];
 	t_light		l;
 	t_rgb		final_color;
 	t_camera	c;
 
 	c.direction = (t_vec3){0, 0, 1};
-	c.position = (t_vec3){10, 10, -500};
-	p.position = (t_vec3){-100, -100, 0};
-	p.direction = (t_vec3){1, 0, 0.5};
-	p.type = INFCONE;
-	p.radius = 10;
-	p.size = 200;
-	p.material.diffuse = (t_rgba){0, 1, 1, 1};
-	p.material.ambient = (t_rgba){0, 0, 0, 1};
-	p.material.specular = (t_rgba){1, 1, 1, 1};
-	p.material.spec_power = 30;
-	p.material.roughness = 0.5;
-	p.material.albedo = 1;
-	l.type = DIRECTIONAL;
-	l.direction	= (t_vec3){0.5, -0.5, 200};
+	c.position = (t_vec3){0, 50, -500};
+	p[0].position = (t_vec3){0, 0, 0};
+	p[0].direction = (t_vec3){0, 1, 0};
+	p[0].type = INFCYLINDER;
+	p[0].radius = 100;
+	p[0].size = 200;
+	p[0].material.diffuse = (t_rgba){0, 1, 1, 1};
+	p[0].material.ambient = (t_rgba){0, 0, 0, 1};
+	p[0].material.specular = (t_rgba){1, 1, 1, 1};
+	p[0].material.spec_power = 30;
+	p[0].material.roughness = 0;
+	p[0].material.albedo = 1;
+	p[1].position = (t_vec3){0, 0, 0};
+	p[1].direction = (t_vec3){0, 1, 0};
+	p[1].type = INFCYLINDER;
+	p[1].radius = 10;
+	p[1].size = 200;
+	p[1].material.diffuse = (t_rgba){0, 1, 1, 1};
+	p[1].material.ambient = (t_rgba){0, 0, 0, 1};
+	p[1].material.specular = (t_rgba){1, 1, 1, 1};
+	p[1].material.spec_power = 30;
+	p[1].material.roughness = 0;
+	p[1].material.albedo = 1;
+	l.type = POINT;
+	l.direction	= (t_vec3){0.5, -0.5, 0};
 	l.position = (t_vec3){-100, 100, -250};
 	l.color = (t_rgb){1, 1, 1};
 	l.power = 1;
 	l.attenuation = 0.002;
 	l.falloff = 200;
-	l.spot_size = 45;
+	l.spot_size = 90;
 	current.y = 0;
 	while (current.y < size.y)
 	{
@@ -120,6 +155,7 @@ void	do_raytracer(t_point2 size, t_rt rt)
 				fcur.x = current.x;
 				while (fcur.x < current.x + 1)
 				{
+					int i = 0;
 					//t_vec2 coord = (t_vec2){size.x / 2.0 - fcur.x, size.y / 2.0 - fcur.y};
 					//c.ray.origin = (t_vec3){
 					//	c.position.x + coord.x,
@@ -139,13 +175,20 @@ void	do_raytracer(t_point2 size, t_rt rt)
 						c.direction.z
 					};
 					t_rgb color = rgb_divide(get_image_color(rt.image, current), 255);
-					if ((p.type == SPHERE && intersect_sphere(p, c.ray, current_z))
-					|| (p.type == INFCYLINDER && intersect_inf_cylinder(p, c.ray, current_z))
-					|| (p.type == INFCONE && intersect_inf_cone(p, c.ray, current_z))
-					|| (p.type == PLANE && intersect_plane(p, c.ray, current_z)))
+					while (i < 2)
 					{
-						color = compute_point_color(p, c, l, current_z);
+						//printf("%f\n", *current_z);
+						if ((p[i].type == SPHERE && intersect_sphere(p[i], c.ray, current_z))
+						|| (p[i].type == INFCYLINDER && intersect_inf_cylinder(p[i], c.ray, current_z))
+						|| (p[i].type == INFCONE && intersect_inf_cone(p[i], c.ray, current_z))
+						|| (p[i].type == PLANE && intersect_plane(p[i], c.ray, current_z)))
+						{
+							color = compute_point_color(p[i], c, l, current_z);
+							//put_current_z(rt.depth, size, current, *current_z);
+						}
+						i++;
 					}
+					//printf("wololo\n");
 					final_color = rgb_add(final_color, color);
 					fcur.x += 1 / ((float)SUPERSAMPLING);
 				}

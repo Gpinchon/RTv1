@@ -1,6 +1,6 @@
 #ifndef ADV_MATH_H
 # define ADV_MATH_H
-# define FLOAT_ZERO		0.0001f
+# define FLOAT_ZERO		0.000001f
 # define DOUBLE_ZERO	0.000001
 # define TO_DEGREE(x)	((int)(180 * x / M_PI) % 360)
 # define TO_RADIAN(x)	(x / 180.0f * M_PI)

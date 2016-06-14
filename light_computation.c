@@ -40,6 +40,7 @@ t_vec3	compute_lightdir(t_light l, t_vec3 position)
 {
 	if (l.type == POINT || l.type == SPOT)
 		return (vec3_normalize(vec3_substract(l.position, position)));
-	else
+	else if (l.type == DIRECTIONAL)
 		return (vec3_normalize(l.position));
+	return (vec3_normalize(l.position));
 }
