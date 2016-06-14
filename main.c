@@ -121,8 +121,8 @@ void	do_raytracer(t_point2 size, t_rt rt)
 	p[0].material.roughness = 0;
 	p[0].material.albedo = 1;
 	p[1].position = (t_vec3){0, 0, 0};
-	p[1].direction = (t_vec3){0, 1, 0};
-	p[1].type = PLANE;
+	p[1].direction = (t_vec3){1, 1, 1};
+	p[1].type = INFCYLINDER;
 	p[1].radius = 50;
 	p[1].size = 200;
 	p[1].material.diffuse = (t_rgba){0, 1, 1, 1};
