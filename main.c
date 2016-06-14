@@ -1,6 +1,6 @@
 # include <rt.h>
 # include <stdio.h>
-# define	SUPERSAMPLING	2
+# define	SUPERSAMPLING	1
 # define	SPHERE		0x0
 # define	INFCYLINDER	0x1
 # define	INFCONE		0x3
@@ -111,7 +111,7 @@ void	do_raytracer(t_point2 size, t_rt rt)
 	c.position = (t_vec3){0, 50, -500};
 	p[0].position = (t_vec3){0, 0, 0};
 	p[0].direction = (t_vec3){0, 1, 0};
-	p[0].type = INFCYLINDER;
+	p[0].type = SPHERE;
 	p[0].radius = 100;
 	p[0].size = 200;
 	p[0].material.diffuse = (t_rgba){0, 1, 1, 1};
@@ -122,8 +122,8 @@ void	do_raytracer(t_point2 size, t_rt rt)
 	p[0].material.albedo = 1;
 	p[1].position = (t_vec3){0, 0, 0};
 	p[1].direction = (t_vec3){0, 1, 0};
-	p[1].type = INFCYLINDER;
-	p[1].radius = 10;
+	p[1].type = PLANE;
+	p[1].radius = 50;
 	p[1].size = 200;
 	p[1].material.diffuse = (t_rgba){0, 1, 1, 1};
 	p[1].material.ambient = (t_rgba){0, 0, 0, 1};

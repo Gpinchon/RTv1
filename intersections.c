@@ -8,21 +8,17 @@ enum e_bool	test_intersect(double t[2], double *current_z)
 
 	retvalue = false;
 	if ((t[0] > DOUBLE_ZERO)
-	&& (t[0] < *(current_z) || double_equal(*(current_z), t[0])))
+	&& (t[0] < *(current_z) || *current_z == -1 || float_equal(*(current_z), t[0])))
 	{
-		printf("t0 %f, %f\n", *(current_z), t[0]);
 		*(current_z) = t[0];
 		retvalue = true;
-		printf("%f\n", *(current_z));
 	}
 	if (!double_equal(t[0], t[1])
 	&& (t[1] > DOUBLE_ZERO) 
-	&& (t[1] < *(current_z) || double_equal(*(current_z), t[1])))
+	&& (t[1] < *(current_z) || *current_z == -1 || float_equal(*(current_z), t[1])))
 	{
-		printf("t1 %f, %f\n", *(current_z), t[1]);
 		*(current_z) = t[1];
 		retvalue = true;
-		printf("%f\n", *(current_z));
 	}
 	return (retvalue);
 }
