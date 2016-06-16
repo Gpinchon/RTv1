@@ -145,20 +145,14 @@ t_camera	new_camera(t_vec3 position, t_vec3 lookat, t_vec3 up, float vfov, float
 	r = vec3_scale(r, 2);
 	u = vec3_scale(u, 2);
 	// camera transform matrix column 1
-	t_mat3 transform = m3_identity();
-	transform.m[0] = r.x;
-	transform.m[1] = r.y;
-	transform.m[2] = r.z;
+	t_mat3 transform = m3_zero();
+	transform.m[0] = r.x; transform.m[1] = u.x; transform.m[2] = v.x;
 
 	// camera transform matrix column 2
-	transform.m[3] = u.x;
-	transform.m[4] = u.y;
-	transform.m[5] = u.z;
+	transform.m[3] = r.y; transform.m[4] = u.y; transform.m[5] = v.y;
 
 	// camera transform matrix column 3
-	transform.m[6] = v.x;
-	transform.m[7] = v.y;
-	transform.m[8] = v.z;
+	transform.m[6] = r.z; transform.m[7] = u.z; transform.m[8] = v.z;
 
 	gopro.transform = transform;
 	// set camera origin
@@ -186,13 +180,13 @@ void	do_raytracer(t_point2 size, t_rt rt)
 	t_rgb		final_color;
 	t_camera	c;
 
-	c.direction = (t_vec3){0, 0, 1};
-	c.position = (t_vec3){0, 0, -500};
-	c = new_camera((t_vec3){4, 4, 4}, (t_vec3){0, 0, 0}, (t_vec3){0, 1, 0}, TO_RADIAN(45), (float)size.y / (float)size.x);
+	//c.direction = (t_vec3){0, 0, 1};
+	//c.position = (t_vec3){0, 0, -500};
+	c = new_camera((t_vec3){0, 0, -500}, (t_vec3){0, 0, 0}, (t_vec3){0, 1, 0}, TO_RADIAN(30), (float)size.y / (float)size.x);
 	p[0].position = (t_vec3){0, 0, 0};
 	p[0].direction = (t_vec3){0, 0, 0};
 	p[0].type = SPHERE;
-	p[0].radius = 2;
+	p[0].radius = 200;
 	p[0].size = 200;
 	p[0].material.diffuse = (t_rgba){0, 1, 1, 1};
 	p[0].material.ambient = (t_rgba){0, 0, 0, 1};
@@ -203,7 +197,7 @@ void	do_raytracer(t_point2 size, t_rt rt)
 	p[1].position = (t_vec3){0, 0, 0};
 	p[1].direction = (t_vec3){1, 1, 1};
 	p[1].type = INFCYLINDER;
-	p[1].radius = 20;
+	p[1].radius = 50;
 	p[1].size = 200;
 	p[1].material.diffuse = (t_rgba){0, 1, 1, 1};
 	p[1].material.ambient = (t_rgba){0, 0, 0, 1};
@@ -271,7 +265,7 @@ void	do_raytracer(t_point2 size, t_rt rt)
 					
 					//t_vec3	view = vec3_substract()
 					//t_vec2	coord = (t_vec2){fcur.x - (size.x / 2.0) / size.x, (size.y - 2 * fcur.y) / size.y};
-					c.ray = generate_ray(c, fcur.x / (float)size.x, fcur.y / (float)size.y);
+					c.ray = generate_ray(c, (size.x - 2 * fcur.x), (size.y - 2 * fcur.y));
 					//c.ray.origin = c.position;
 					t_rgb color = rgb_divide(get_image_color(rt.image, current), 255);
 					z = -1;
