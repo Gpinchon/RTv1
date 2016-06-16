@@ -2,8 +2,8 @@
 # include <mlx_framework.h>
 # include <adv_math.h>
 
-# define	WIDTH			1920
-# define	HEIGHT			1080
+# define	WIDTH			1024
+# define	HEIGHT			1024
 # define	DIFFUSE			oren_nayar_diffuse
 # define	SPECULAR		trowbridge_reitz_specular
 # define	DIRECTIONAL		0x0

@@ -146,13 +146,16 @@ t_camera	new_camera(t_vec3 position, t_vec3 lookat, t_vec3 up, float vfov, float
 	u = vec3_scale(u, 2);
 	// camera transform matrix column 1
 	t_mat3 transform = m3_zero();
-	transform.m[0] = r.x; transform.m[1] = u.x; transform.m[2] = v.x;
-
-	// camera transform matrix column 2
-	transform.m[3] = r.y; transform.m[4] = u.y; transform.m[5] = v.y;
-
-	// camera transform matrix column 3
-	transform.m[6] = r.z; transform.m[7] = u.z; transform.m[8] = v.z;
+	//transform.m[0] = r.x; transform.m[1] = u.x; transform.m[2] = v.x;
+//
+	//// camera transform matrix column 2
+	//transform.m[3] = r.y; transform.m[4] = u.y; transform.m[5] = v.y;
+//
+	//// camera transform matrix column 3
+	//transform.m[6] = r.z; transform.m[7] = u.z; transform.m[8] = v.z;
+	transform.m[0] = r.x; transform.m[1] = r.y; transform.m[2] = r.z;
+	transform.m[3] = u.x; transform.m[4] = u.y; transform.m[5] = u.z;
+	transform.m[6] = v.x; transform.m[7] = v.y; transform.m[8] = v.z;
 
 	gopro.transform = transform;
 	// set camera origin
@@ -164,7 +167,7 @@ t_camera	new_camera(t_vec3 position, t_vec3 lookat, t_vec3 up, float vfov, float
 t_ray	generate_ray(t_camera gopro, float x, float y)
 {
     t_ray ray;
-    t_vec3 p = new_vec3(x, y, 1);
+    t_vec3 p = vec3_normalize(new_vec3(x, y, 1));
 
     ray.origin = gopro.position;
     ray.direction = vec3_normalize(m3_mult_vec3(gopro.transform, p));
@@ -182,22 +185,22 @@ void	do_raytracer(t_point2 size, t_rt rt)
 
 	//c.direction = (t_vec3){0, 0, 1};
 	//c.position = (t_vec3){0, 0, -500};
-	c = new_camera((t_vec3){0, 0, -500}, (t_vec3){0, 0, 0}, (t_vec3){0, 1, 0}, TO_RADIAN(30), (float)size.y / (float)size.x);
+	c = new_camera((t_vec3){0, 200, -300}, (t_vec3){0, 0, 0}, (t_vec3){0, 1, 0}, TO_RADIAN(30), (float)size.y / (float)size.x);
 	p[0].position = (t_vec3){0, 0, 0};
-	p[0].direction = (t_vec3){0, 0, 0};
-	p[0].type = SPHERE;
-	p[0].radius = 200;
+	p[0].direction = (t_vec3){1, 0, 0};
+	p[0].type = INFCYLINDER;
+	p[0].radius = 50;
 	p[0].size = 200;
-	p[0].material.diffuse = (t_rgba){0, 1, 1, 1};
+	p[0].material.diffuse = (t_rgba){0, 0, 1, 1};
 	p[0].material.ambient = (t_rgba){0, 0, 0, 1};
 	p[0].material.specular = (t_rgba){1, 1, 1, 1};
 	p[0].material.spec_power = 30;
 	p[0].material.roughness = 0;
 	p[0].material.albedo = 1;
 	p[1].position = (t_vec3){0, 0, 0};
-	p[1].direction = (t_vec3){1, 1, 1};
-	p[1].type = INFCYLINDER;
-	p[1].radius = 50;
+	p[1].direction = (t_vec3){0, 1, 0};
+	p[1].type = INFCONE;
+	p[1].radius = 20;
 	p[1].size = 200;
 	p[1].material.diffuse = (t_rgba){0, 1, 1, 1};
 	p[1].material.ambient = (t_rgba){0, 0, 0, 1};
@@ -205,7 +208,7 @@ void	do_raytracer(t_point2 size, t_rt rt)
 	p[1].material.spec_power = 30;
 	p[1].material.roughness = 0;
 	p[1].material.albedo = 1;
-	l.type = DIRECTIONAL;
+	l.type = POINT;
 	l.direction	= (t_vec3){0.5, -0.5, 0};
 	l.position = (t_vec3){-100, 100, -250};
 	l.color = (t_rgb){1, 1, 1};
