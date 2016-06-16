@@ -1,5 +1,6 @@
 NAME	= libadv_math.a
-SRC		=	./src/vector3/normalize.c			\
+SRC		=	./src/vector3/new.c	\
+			./src/vector3/normalize.c			\
 			./src/vector3/operations.c			\
 			./src/vector3/scalar_operations.c	\
 			./src/float/interpolate.c			\
@@ -7,7 +8,8 @@ SRC		=	./src/vector3/normalize.c			\
 			./src/double/operations.c			\
 			./src/matrix/initialisation.c		\
 			./src/matrix/projection.c			\
-			./src/matrix/operations.c
+			./src/matrix/operations.c			\
+			./src/matrix/mat3_operations.c
 
 OBJ		= $(SRC:.c=.o)
 	CC		= gcc

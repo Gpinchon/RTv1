@@ -167,7 +167,7 @@ enum e_bool	intersect_inf_cone(t_primitive cp, t_ray r, double *current_z)
 	t_vec3 tmp1 = vec3_substract(r.direction, vec3_scale(cp.direction, vec3_dot(r.direction, cp.direction)));
 	t_vec3 tmp2 = vec3_substract(eye, vec3_scale(cp.direction, vec3_dot(eye, cp.direction)));
 	double a = pow(cos(alpha), 2) * vec3_dot(tmp1, tmp1) - pow(sin(alpha), 2) * pow(vec3_dot(r.direction, cp.direction), 2);
-	double b = 2 * (pow(cos(alpha), 2) * vec3_dot(tmp1, tmp2)) - 2 * (pow(sin(alpha), 2) * vec3_dot(r.direction, cp.direction) * vec3_dot(eye, cp.direction));
+	double b = 2.0 * (pow(cos(alpha), 2) * vec3_dot(tmp1, tmp2)) - 2.0 * (pow(sin(alpha), 2) * vec3_dot(r.direction, cp.direction) * vec3_dot(eye, cp.direction));
 	double c = pow(cos(alpha), 2) * vec3_dot(tmp2, tmp2) - pow(sin(alpha), 2) * pow(vec3_dot(eye, cp.direction), 2);
 	//t_vec3 eye = vec3_substract(r.origin, cp.position);
 	//double hangle = 1 + TO_RADIAN(cp.radius) * TO_RADIAN(cp.radius);

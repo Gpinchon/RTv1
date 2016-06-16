@@ -1,6 +1,6 @@
 # include <rt.h>
 # include <stdio.h>
-# define	SUPERSAMPLING	1
+# define	SUPERSAMPLING	2
 # define	SPHERE		0x0
 # define	INFCYLINDER	0x1
 # define	INFCONE		0x3
@@ -12,24 +12,6 @@ double		*get_current_z(t_depth_buffer *depth,
 	return (&depth->buffer
 		[(int)floor(depth->size.x / (float)screen_size.x * current.x)]
 		[(int)floor(depth->size.y / (float)screen_size.y * current.y)]);
-}
-
-void		put_current_z(t_depth_buffer *depth,
-	t_point2 screen_size, t_point2 current, double value)
-{
-	//if (value != depth->buffer
-	//		[(int)floor(depth->size.x / (float)screen_size.x * current.x)]
-	//		[(int)floor(depth->size.y / (float)screen_size.y * current.y)])
-	//{
-		printf("%f\n", value);
-		printf("%f\n", depth->buffer
-			[(int)floor(depth->size.x / (float)screen_size.x * current.x)]
-			[(int)floor(depth->size.y / (float)screen_size.y * current.y)]);
-		printf("woot\n");
-	//}
-	//depth->buffer
-	//	[(int)floor(depth->size.x / (float)screen_size.x * current.x)]
-	//	[(int)floor(depth->size.y / (float)screen_size.y * current.y)] = value;
 }
 
 t_vec3	vec3_proj_vec3(t_vec3 v, t_vec3 v1)
@@ -99,6 +81,103 @@ t_rgb	compute_point_color(t_primitive p, t_camera c, t_light l, double *current_
 	return (color);
 }
 
+
+t_vec3				vec3_rotx(const t_vec3 vec, const double r)
+{
+	double			cos_r;
+	double			sin_r;
+	t_vec3			ret;
+
+	if (!r)
+		return (vec);
+	cos_r = cos(r);
+	sin_r = sin(r);
+	ret.x = vec.x;
+	ret.y = cos_r * vec.y - sin_r * vec.z;
+	ret.z = sin_r * vec.y + cos_r * vec.z;
+	return (ret);
+}
+
+t_vec3				vec3_roty(const t_vec3 vec, const double r)
+{
+	double			cos_r;
+	double			sin_r;
+	t_vec3			ret;
+
+	if (!r)
+		return (vec);
+	cos_r = cos(r);
+	sin_r = sin(r);
+	ret.x = sin_r * vec.z + cos_r * vec.x;
+	ret.y = vec.y;
+	ret.z = cos_r * vec.z - sin_r * vec.x;
+	return (ret);
+}
+
+t_vec3				vec3_rotz(const t_vec3 vec, const double r)
+{
+	double			cos_r;
+	double			sin_r;
+	t_vec3			ret;
+
+	if (!r)
+		return (vec);
+	cos_r = cos(r);
+	sin_r = sin(r);
+	ret.x = cos_r * vec.x - sin_r * vec.y;
+	ret.y = sin_r * vec.x + cos_r * vec.y;
+	ret.z = vec.z;
+	return (ret);
+}
+
+t_camera	new_camera(t_vec3 position, t_vec3 lookat, t_vec3 up, float vfov, float aspect)
+{
+	printf("%f, %f\n", vfov, aspect);
+	t_vec3 v = vec3_substract(lookat, position);  // create view vector
+	t_vec3 r = vec3_normalize(vec3_cross(v, up));// v.cross(up).unit(); // find right vector
+	t_vec3 u = vec3_normalize(vec3_cross(r, v));// r.cross(v).unit();  // orthogonalise up vector
+	t_camera	gopro;
+	// scale up and right vectors
+	u = vec3_scale(u, tan(vfov / 2.0));
+	r = vec3_scale(r, tan(vfov / 2.0) * aspect);
+	// adjust for image space normalisation
+	v = vec3_substract(v, vec3_add(r, u));
+	r = vec3_scale(r, 2);
+	u = vec3_scale(u, 2);
+	// camera transform matrix column 1
+	t_mat3 transform = m3_identity();
+	transform.m[0] = r.x;
+	transform.m[1] = r.y;
+	transform.m[2] = r.z;
+
+	// camera transform matrix column 2
+	transform.m[3] = u.x;
+	transform.m[4] = u.y;
+	transform.m[5] = u.z;
+
+	// camera transform matrix column 3
+	transform.m[6] = v.x;
+	transform.m[7] = v.y;
+	transform.m[8] = v.z;
+
+	gopro.transform = transform;
+	// set camera origin
+	gopro.position = position;
+	gopro.direction = lookat;
+	return (gopro);
+}
+
+t_ray	generate_ray(t_camera gopro, float x, float y)
+{
+    t_ray ray;
+    t_vec3 p = new_vec3(x, y, 1);
+
+    ray.origin = gopro.position;
+    ray.direction = vec3_normalize(m3_mult_vec3(gopro.transform, p));
+
+    return (ray);
+}
+
 void	do_raytracer(t_point2 size, t_rt rt)
 {
 	t_point2	current;
@@ -108,11 +187,12 @@ void	do_raytracer(t_point2 size, t_rt rt)
 	t_camera	c;
 
 	c.direction = (t_vec3){0, 0, 1};
-	c.position = (t_vec3){0, 50, -500};
+	c.position = (t_vec3){0, 0, -500};
+	c = new_camera((t_vec3){4, 4, 4}, (t_vec3){0, 0, 0}, (t_vec3){0, 1, 0}, TO_RADIAN(45), (float)size.y / (float)size.x);
 	p[0].position = (t_vec3){0, 0, 0};
-	p[0].direction = (t_vec3){0, 1, 0};
+	p[0].direction = (t_vec3){0, 0, 0};
 	p[0].type = SPHERE;
-	p[0].radius = 100;
+	p[0].radius = 2;
 	p[0].size = 200;
 	p[0].material.diffuse = (t_rgba){0, 1, 1, 1};
 	p[0].material.ambient = (t_rgba){0, 0, 0, 1};
@@ -123,7 +203,7 @@ void	do_raytracer(t_point2 size, t_rt rt)
 	p[1].position = (t_vec3){0, 0, 0};
 	p[1].direction = (t_vec3){1, 1, 1};
 	p[1].type = INFCYLINDER;
-	p[1].radius = 50;
+	p[1].radius = 20;
 	p[1].size = 200;
 	p[1].material.diffuse = (t_rgba){0, 1, 1, 1};
 	p[1].material.ambient = (t_rgba){0, 0, 0, 1};
@@ -131,7 +211,7 @@ void	do_raytracer(t_point2 size, t_rt rt)
 	p[1].material.spec_power = 30;
 	p[1].material.roughness = 0;
 	p[1].material.albedo = 1;
-	l.type = POINT;
+	l.type = DIRECTIONAL;
 	l.direction	= (t_vec3){0.5, -0.5, 0};
 	l.position = (t_vec3){-100, 100, -250};
 	l.color = (t_rgb){1, 1, 1};
@@ -140,6 +220,8 @@ void	do_raytracer(t_point2 size, t_rt rt)
 	l.falloff = 200;
 	l.spot_size = 90;
 	current.y = 0;
+	//t_vec3 up = (t_vec3){0, 1, 0};
+	//t_vec3 right = (t_vec3){1, 0, 0};
 	while (current.y < size.y)
 	{
 		current.x = 0;
@@ -150,50 +232,69 @@ void	do_raytracer(t_point2 size, t_rt rt)
 			fcur.y = current.y;
 			final_color = (t_rgb){0, 0, 0};
 			current_z = get_current_z(rt.depth, size, current);
+			double z = -1;
 			while (fcur.y < current.y + 1)
 			{
 				fcur.x = current.x;
 				while (fcur.x < current.x + 1)
 				{
 					int i = 0;
+					//float xIndent, yIndent;
+					//xIndent = m_viewplaneWidth / (float)xRes;
+					//yIndent = m_viewplaneHeight /  (float)yRes;
+					//return (m_viewPlaneUpLeft + right * fcur.x - up * fcur.y) -  c.position;
 					//t_vec2 coord = (t_vec2){size.x / 2.0 - fcur.x, size.y / 2.0 - fcur.y};
-					//c.ray.origin = (t_vec3){
-					//	c.position.x + coord.x,
-					//	c.position.y + coord.y,
-					//	c.position.z};
-					//c.ray.direction = vec3_normalize(c.direction);
-					float fovx = TO_RADIAN(45);
+					//c.ray.direction = vec3_normalize((t_vec3){
+					//						coord.x,
+					//						coord.y,
+					//						c.position.z});
+					//c.ray.origin = c.position;
+					//dx,y = (P0,0 + Sx∗(x/(size.x-1)) ∗ c.direction - Sy∗(y/(size.y-1))∗ up) -O;
+					//d’x,y = dx,y / |dx,y| ;
+					/*float fovx = TO_RADIAN(30);
 					float fovy = (float)size.y / (float)size.x * fovx;
-					t_vec2	coord = (t_vec2){(size.x - 2 * fcur.x) / size.x, (size.y - 2 * fcur.y) / size.y};
+					t_vec2	coord = (t_vec2){(size.x - 2.0 * fcur.x) / size.x, (size.y - 2.0 * fcur.y) / size.y};
+					c.ray.direction = vec3_normalize((t_vec3){
+											c.direction.x * coord.x * tan(fovx),
+											c.direction.y * coord.y * tan(fovy),
+											c.direction.z
+										});
 					c.ray.origin = (t_vec3){
 						c.position.x,
 						c.position.y,
-						c.position.z};
-					c.ray.direction = (t_vec3){
-						c.direction.x + coord.x * tan(fovx),
-						c.direction.y + coord.y * tan(fovy),
-						c.direction.z
-					};
+						c.position.z};*/
+					//c.ray.direction = vec3_normalize((t_vec3){
+					//						c.direction.x + coord.x * tan(fovx),
+					//						c.direction.y + coord.y * tan(fovy),
+					//						c.direction.z
+					//					});
+					
+					//t_vec3	view = vec3_substract()
+					//t_vec2	coord = (t_vec2){fcur.x - (size.x / 2.0) / size.x, (size.y - 2 * fcur.y) / size.y};
+					c.ray = generate_ray(c, fcur.x / (float)size.x, fcur.y / (float)size.y);
+					//c.ray.origin = c.position;
 					t_rgb color = rgb_divide(get_image_color(rt.image, current), 255);
+					z = -1;
 					while (i < 2)
 					{
-						//printf("%f\n", *current_z);
-						if ((p[i].type == SPHERE && intersect_sphere(p[i], c.ray, current_z))
-						|| (p[i].type == INFCYLINDER && intersect_inf_cylinder(p[i], c.ray, current_z))
-						|| (p[i].type == INFCONE && intersect_inf_cone(p[i], c.ray, current_z))
-						|| (p[i].type == PLANE && intersect_plane(p[i], c.ray, current_z)))
+						if ((p[i].type == SPHERE && intersect_sphere(p[i], c.ray, &z))
+						|| (p[i].type == INFCYLINDER && intersect_inf_cylinder(p[i], c.ray, &z))
+						|| (p[i].type == INFCONE && intersect_inf_cone(p[i], c.ray, &z))
+						|| (p[i].type == PLANE && intersect_plane(p[i], c.ray, &z)))
 						{
-							color = compute_point_color(p[i], c, l, current_z);
+							color = compute_point_color(p[i], c, l, &z);
+							z = (z + z) / 2.0;
 							//put_current_z(rt.depth, size, current, *current_z);
 						}
 						i++;
 					}
-					//printf("wololo\n");
 					final_color = rgb_add(final_color, color);
 					fcur.x += 1 / ((float)SUPERSAMPLING);
 				}
 				fcur.y += 1 / ((float)SUPERSAMPLING);
 			}
+			if (z != -1)
+				*(current_z) = z;
 			final_color = rgb_divide(final_color, (SUPERSAMPLING) * (SUPERSAMPLING));
 			final_color = rgb_scale(final_color, 255);
 			put_rgb_to_image(rt.image, current, final_color);

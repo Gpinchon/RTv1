@@ -2,7 +2,7 @@
 # define ADV_MATH_H
 # define FLOAT_ZERO		0.0001f
 # define DOUBLE_ZERO	0.000001
-# define TO_DEGREE(x)	((int)(180 * x / M_PI) % 360)
+# define TO_DEGREE(x)	((int)(180.0f * x / M_PI) % 360)
 # define TO_RADIAN(x)	(x / 180.0f * M_PI)
 # include <math.h>
 
@@ -12,6 +12,11 @@ enum			e_bool
 {
 	false = 0x0, true = !false
 };
+
+typedef	struct		s_mat3
+{
+	float			m[9];
+}					t_mat3;
 
 typedef	struct		s_mat4
 {
@@ -41,6 +46,12 @@ typedef struct	s_vec4
 
 # pragma pack ()
 
+/*
+** Vector creation
+*/
+t_vec3	new_vec3(float x, float y, float z);
+t_vec3	vec2_to_vec3(t_vec2 v);
+t_vec3	vec4_to_vec3(t_vec4 v);
 /*
 ** Vector math
 */
@@ -100,5 +111,13 @@ t_mat4	m4_persp(float fov, float aspect, float znear, float zfar);
 t_mat4	m4_ortho(t_vec4 frustum, float znear, float zfar);
 t_vec3	m4_mult_vec3(t_mat4 m, t_vec3 v);
 t_vec4	m4_mult_vec4(t_mat4 m, t_vec4 v);
+t_mat4	m4_invert(const t_mat4 i);
+t_mat4	m4_transpose(t_mat4 in);
+/*
+** Matrix 3 functions
+*/
+t_mat3	m3_identity(void);
+t_mat3	m3_zero(void);
+t_vec3	m3_mult_vec3(t_mat3 m, t_vec3 v);
 
 #endif

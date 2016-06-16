@@ -2,8 +2,8 @@
 # include <mlx_framework.h>
 # include <adv_math.h>
 
-# define	WIDTH			512
-# define	HEIGHT			512
+# define	WIDTH			1920
+# define	HEIGHT			1080
 # define	DIFFUSE			oren_nayar_diffuse
 # define	SPECULAR		trowbridge_reitz_specular
 # define	DIRECTIONAL		0x0
@@ -70,9 +70,11 @@ typedef struct	s_ray
 typedef struct	s_camera
 {
 	float	fov;
+	t_vec3	up;
 	t_vec3	position;
 	t_vec3	direction;
 	t_ray	ray;
+	t_mat3	transform;
 }				t_camera;
 
 typedef struct	s_scene
