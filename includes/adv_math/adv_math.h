@@ -86,7 +86,6 @@ t_vec3	vec3_slerp(t_vec3 start, t_vec3 end, float percent);
 */
 t_vec3	vec3_nlerp(t_vec3 start, t_vec3 end, float percent);
 
-
 /*
 ** Scalar math
 ** Linear interpolation
