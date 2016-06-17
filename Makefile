@@ -1,7 +1,9 @@
 NAME	= RT
 SRC	=	./main.c				\
 		./light_computation.c	\
-		./intersections.c
+		./intersections.c		\
+		./primitives_creation.c	\
+		./normal_computation.c
 
 OBJ	= $(SRC:.c=.o)
 CC	= gcc

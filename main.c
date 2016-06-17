@@ -1,10 +1,6 @@
 # include <rt.h>
 # include <stdio.h>
 # define	SUPERSAMPLING	2
-# define	SPHERE		0x0
-# define	INFCYLINDER	0x1
-# define	INFCONE		0x3
-# define	PLANE		0x4
 
 double		*get_current_z(t_depth_buffer *depth,
 	t_point2 screen_size, t_point2 current)
@@ -13,6 +9,11 @@ double		*get_current_z(t_depth_buffer *depth,
 		[(int)floor(depth->size.x / (float)screen_size.x * current.x)]
 		[(int)floor(depth->size.y / (float)screen_size.y * current.y)]);
 }
+
+//t_rgb	compute_illumination()
+//{
+//	
+//}
 
 t_rgb	compute_point_color(t_primitive p, t_camera c, t_light l, double *current_z)
 {
@@ -25,35 +26,13 @@ t_rgb	compute_point_color(t_primitive p, t_camera c, t_light l, double *current_
 	position.x = (c.ray.origin.x + c.ray.direction.x * *current_z);
 	position.y = (c.ray.origin.y + c.ray.direction.y * *current_z);
 	position.z = (c.ray.origin.z + c.ray.direction.z * *current_z);
-	if (p.type == INFCYLINDER)
-	{
-		t_vec3	co = vec3_substract(position, p.position);
-		t_vec3	vpersp = vec3_substract(co, vec3_project(co, p.direction));
-		normal = vec3_normalize(vec3_add(vpersp, vec3_normalize(vpersp)));
-	}
-	else if (p.type == SPHERE)
-		normal = vec3_normalize((t_vec3){
-			(position.x - p.position.x) / p.radius,
-			(position.y - p.position.y) / p.radius,
-			(position.z - p.position.z) / p.radius
-		});
-	else if (p.type == PLANE)
-		normal = vec3_normalize(p.direction);
-	else if (p.type == INFCONE)
-		normal = vec3_normalize((t_vec3){(position.x - p.position.x) * (p.direction.x == 0), (position.y - p.position.y) * (p.direction.y == 0), (position.z - p.position.z) * (p.direction.z == 0)});
-		//normal = vec3_normalize(vec3_substract(position, p.position));
-		//normal = vec3_fdivide(vec3_normalize((t_vec3){
-		//			(position.x - p.position.x), (position.y - p.position.y),
-		//			-tan(TO_RADIAN(p.radius)) * position.z - p.position.z
-		//		}), p.radius);
+	normal = p.normal(position, p);
 	light_dir = compute_lightdir(l, position);
 	view_dir = vec3_normalize(vec3_substract(c.ray.origin, position));
 	double	diffuse = DIFFUSE(normal, view_dir, light_dir, p.material);
 	if (l.type == SPOT)
-	{
-		float dotAngle = vec3_dot(vec3_normalize(l.direction), vec3_negate(light_dir));
-		diffuse *= dotAngle > cos(TO_RADIAN(l.spot_size / 2.0)) ? 1 : 0;
-	}
+		diffuse *= vec3_dot(vec3_normalize(l.direction),
+		vec3_negate(light_dir)) > cos(TO_RADIAN(l.spot_size / 2.0)) ? 1 : 0;
 	color = rgba_to_rgb(p.material.ambient);
 	if (diffuse > 0)
 	{
@@ -69,11 +48,8 @@ t_rgb	compute_point_color(t_primitive p, t_camera c, t_light l, double *current_
 		if (specular > 0 && attenuation > 0)
 			color = rgb_add(color, rgb_scale(rgb_multiply(l.color, rgba_to_rgb(p.material.specular)), specular));
 		color = rgb_scale(color, attenuation);
-		color.r = clamp(color.r, 0, 1);
-		color.g = clamp(color.g, 0, 1);
-		color.b = clamp(color.b, 0, 1);
 	}
-	return (color);
+	return ((t_rgb){clamp(color.r, 0, 1), clamp(color.g, 0, 1), clamp(color.b, 0, 1)});
 }
 
 t_vec3				vec3_rotx(const t_vec3 vec, const double r)
@@ -124,48 +100,70 @@ t_vec3				vec3_rotz(const t_vec3 vec, const double r)
 	return (ret);
 }
 
-t_camera	new_camera(t_vec3 position, t_vec3 lookat, t_vec3 up, float vfov, float aspect)
-{
-	t_vec3 v = vec3_substract(lookat, position);  // create view vector
-	t_vec3 r = vec3_normalize(vec3_cross(v, up));// v.cross(up).unit(); // find right vector
-	t_vec3 u = vec3_normalize(vec3_cross(r, v));// r.cross(v).unit();  // orthogonalise up vector
-	t_camera	gopro;
-	// scale up and right vectors
-	u = vec3_scale(u, tan(vfov / 2.0));
-	r = vec3_scale(r, tan(vfov / 2.0) * aspect);
-	// adjust for image space normalisation
-	v = vec3_substract(v, vec3_add(r, u));
-	r = vec3_scale(r, 2);
-	u = vec3_scale(u, 2);
-	// camera transform matrix column 1
-	t_mat3 transform = m3_zero();
-	//transform.m[0] = r.x; transform.m[1] = u.x; transform.m[2] = v.x;
-//
-	//// camera transform matrix column 2
-	//transform.m[3] = r.y; transform.m[4] = u.y; transform.m[5] = v.y;
-//
-	//// camera transform matrix column 3
-	//transform.m[6] = r.z; transform.m[7] = u.z; transform.m[8] = v.z;
-	transform.m[0] = r.x; transform.m[1] = r.y; transform.m[2] = r.z;
-	transform.m[3] = u.x; transform.m[4] = u.y; transform.m[5] = u.z;
-	transform.m[6] = v.x; transform.m[7] = v.y; transform.m[8] = v.z;
+/*
+** lookat - position	-> create view vector
+** v * up				-> find right vector
+** r * v				-> orthogonalise up vector
+** r * tan(vfov / 2.0)
+** u * tan(vfov / 2.0)	-> scale up and right vectors
+** v - r + u			-> adjust for image space normalisation
+** d.x == FOV
+** d.y == ASPECT RATIO
+*/
 
-	gopro.transform = transform;
-	// set camera origin
+t_camera	new_camera(t_vec3 position, t_vec3 lookat, t_vec3 up, t_vec2 d)
+{
+	t_camera	gopro;
+	t_vec3		v;
+	t_vec3		r;
+	t_vec3		u;
+
+	v = vec3_substract(lookat, position);
+	r = vec3_normalize(vec3_cross(v, up));
+	u = vec3_normalize(vec3_cross(r, v));
+	v = vec3_substract(v,
+		vec3_add(r = vec3_scale(r, tan(d.x / 2.0) * d.y),
+		u = vec3_scale(u, tan(d.x / 2.0) * d.y)));
+	gopro.transform = (t_mat3){.m = {
+		r.x * 2, r.y * 2, r.z * 2,
+		u.x * 2, u.y * 2, u.z * 2,
+		v.x, v.y, v.z
+	}};
 	gopro.position = position;
-	gopro.direction = lookat;
+	gopro.lookat = lookat;
+	gopro.up = up;
+	gopro.fov = d.x;
+	return (gopro);
+}
+
+t_camera	update_camera(t_camera gopro, double aspect)
+{
+	t_vec3		v;
+	t_vec3		r;
+	t_vec3		u;
+
+	v = vec3_substract(gopro.lookat, gopro.position);
+	r = vec3_normalize(vec3_cross(v, gopro.up));
+	u = vec3_normalize(vec3_cross(r, v));
+	v = vec3_substract(v,
+		vec3_add(r = vec3_scale(r, tan(gopro.fov / 2.0) * aspect),
+		u = vec3_scale(u, tan(gopro.fov / 2.0) * aspect)));
+	gopro.transform = (t_mat3){.m = {
+		r.x * 2, r.y * 2, r.z * 2,
+		u.x * 2, u.y * 2, u.z * 2,
+		v.x, v.y, v.z
+	}};
 	return (gopro);
 }
 
 t_ray	generate_ray(t_camera gopro, float x, float y)
 {
-    t_ray ray;
-    t_vec3 p = vec3_normalize(new_vec3(x, y, 1));
+	t_ray ray;
 
-    ray.origin = gopro.position;
-    ray.direction = vec3_normalize(m3_mult_vec3(gopro.transform, p));
-
-    return (ray);
+	ray.origin = gopro.position;
+	ray.direction = vec3_normalize(m3_mult_vec3(gopro.transform,
+					vec3_normalize(new_vec3(x, y, 1))));
+	return (ray);
 }
 
 void	do_raytracer(t_point2 size, t_rt rt)
@@ -178,40 +176,30 @@ void	do_raytracer(t_point2 size, t_rt rt)
 
 	//c.direction = (t_vec3){0, 0, 1};
 	//c.position = (t_vec3){0, 0, -500};
-	c = new_camera((t_vec3){0, 0, -100}, (t_vec3){0, 0, 0}, (t_vec3){0, 1, 0}, TO_RADIAN(30), (float)size.y / (float)size.x);
-	p[0].position = (t_vec3){50, 0, 0};
-	p[0].direction = (t_vec3){1, 1, 1};
-	p[0].type = INFCYLINDER;
-	p[0].radius = 20;
-	p[0].size = 200;
+	c = new_camera((t_vec3){-500, 250, -500}, (t_vec3){0, 0, 0}, (t_vec3){0, 1, 0}, (t_vec2){TO_RADIAN(45), (float)size.y / (float)size.x});
+	p[0] = new_sphere((t_vec3){0, 0, 0}, 250);
+	p[1] = new_plane((t_vec3){0, 0, 0}, (t_vec3){-1, 1, 0});
 	p[0].material.diffuse = (t_rgba){0, 0, 1, 1};
 	p[0].material.ambient = (t_rgba){0, 0, 0, 1};
 	p[0].material.specular = (t_rgba){1, 1, 1, 1};
 	p[0].material.spec_power = 30;
 	p[0].material.roughness = 0;
 	p[0].material.albedo = 1;
-	p[1].position = (t_vec3){0, 0, 0};
-	p[1].direction = (t_vec3){0, 1, 0};
-	p[1].type = SPHERE;
-	p[1].radius = 50;
-	p[1].size = 200;
 	p[1].material.diffuse = (t_rgba){0, 1, 1, 1};
 	p[1].material.ambient = (t_rgba){0, 0, 0, 1};
 	p[1].material.specular = (t_rgba){1, 1, 1, 1};
 	p[1].material.spec_power = 30;
 	p[1].material.roughness = 0;
 	p[1].material.albedo = 1;
-	l.type = DIRECTIONAL;
+	l.type = POINT;
 	l.direction	= (t_vec3){0.5, -0.5, 0};
-	l.position = (t_vec3){-100, 100, -250};
+	l.position = (t_vec3){-250, 250, -250};
 	l.color = (t_rgb){1, 1, 1};
 	l.power = 1;
 	l.attenuation = 0.002;
 	l.falloff = 200;
 	l.spot_size = 90;
 	current.y = 0;
-	//t_vec3 up = (t_vec3){0, 1, 0};
-	//t_vec3 right = (t_vec3){1, 0, 0};
 	while (current.y < size.y)
 	{
 		current.x = 0;
@@ -229,52 +217,15 @@ void	do_raytracer(t_point2 size, t_rt rt)
 				while (fcur.x < current.x + 1)
 				{
 					int i = 0;
-					//float xIndent, yIndent;
-					//xIndent = m_viewplaneWidth / (float)xRes;
-					//yIndent = m_viewplaneHeight /  (float)yRes;
-					//return (m_viewPlaneUpLeft + right * fcur.x - up * fcur.y) -  c.position;
-					//t_vec2 coord = (t_vec2){size.x / 2.0 - fcur.x, size.y / 2.0 - fcur.y};
-					//c.ray.direction = vec3_normalize((t_vec3){
-					//						coord.x,
-					//						coord.y,
-					//						c.position.z});
-					//c.ray.origin = c.position;
-					//dx,y = (P0,0 + Sx∗(x/(size.x-1)) ∗ c.direction - Sy∗(y/(size.y-1))∗ up) -O;
-					//d’x,y = dx,y / |dx,y| ;
-					/*float fovx = TO_RADIAN(30);
-					float fovy = (float)size.y / (float)size.x * fovx;
-					t_vec2	coord = (t_vec2){(size.x - 2.0 * fcur.x) / size.x, (size.y - 2.0 * fcur.y) / size.y};
-					c.ray.direction = vec3_normalize((t_vec3){
-											c.direction.x * coord.x * tan(fovx),
-											c.direction.y * coord.y * tan(fovy),
-											c.direction.z
-										});
-					c.ray.origin = (t_vec3){
-						c.position.x,
-						c.position.y,
-						c.position.z};*/
-					//c.ray.direction = vec3_normalize((t_vec3){
-					//						c.direction.x + coord.x * tan(fovx),
-					//						c.direction.y + coord.y * tan(fovy),
-					//						c.direction.z
-					//					});
-					
-					//t_vec3	view = vec3_substract()
-					//t_vec2	coord = (t_vec2){fcur.x - (size.x / 2.0) / size.x, (size.y - 2 * fcur.y) / size.y};
 					c.ray = generate_ray(c, (size.x - 2 * fcur.x), (size.y - 2 * fcur.y));
-					//c.ray.origin = c.position;
 					t_rgb color = rgb_divide(get_image_color(rt.image, current), 255);
 					z = -1;
 					while (i < 2)
 					{
-						if ((p[i].type == SPHERE && intersect_sphere(p[i], c.ray, &z))
-						|| (p[i].type == INFCYLINDER && intersect_inf_cylinder(p[i], c.ray, &z))
-						|| (p[i].type == INFCONE && intersect_inf_cone(p[i], c.ray, &z))
-						|| (p[i].type == PLANE && intersect_plane(p[i], c.ray, &z)))
+						if (p[i].intersect(p[i], c.ray, &z))
 						{
 							color = compute_point_color(p[i], c, l, &z);
 							z = (z + z) / 2.0;
-							//put_current_z(rt.depth, size, current, *current_z);
 						}
 						i++;
 					}

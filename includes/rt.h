@@ -2,18 +2,20 @@
 # include <mlx_framework.h>
 # include <adv_math.h>
 
-# define	WIDTH			1024
-# define	HEIGHT			1024
-# define	DIFFUSE			oren_nayar_diffuse
-# define	SPECULAR		trowbridge_reitz_specular
-# define	DIRECTIONAL		0x0
-# define	SPOT			0x1
-# define	POINT			0x2
+# define	WIDTH		1920
+# define	HEIGHT		1080
+# define	DIFFUSE		oren_nayar_diffuse
+# define	SPECULAR	trowbridge_reitz_specular
+# define	DIRECTIONAL	0x0
+# define	SPOT		0x1
+# define	POINT		0x2
 /*
-** Structure types
+** Primitives types
 */
-# define	PRIMITIVE		0
-# define	LIGHT			1
+# define	SPHERE		0x0
+# define	CYLINDER	0x1
+# define	CONE		0x3
+# define	PLANE		0x4
 
 typedef struct	s_mtl
 {
@@ -26,31 +28,21 @@ typedef struct	s_mtl
 	float		refl;
 }				t_mtl;
 
-typedef struct	s_gen_struct
-{
-	UCHAR		struct_type;
-	struct s_gen_struct	*next;
-	struct s_gen_struct	*prev;
-}				t_gen_struct;
-
 typedef	struct	s_primitive
 {
-	UCHAR		struct_type;
-	struct s_primitive	*next;
-	struct s_primitive	*prev;
 	UCHAR		type;
+	int			mtl_index;
 	t_mtl		material;
 	t_vec3		position;
 	t_vec3		direction;
 	float		radius;
 	float		size;
+	enum e_bool	(*intersect)();
+	t_vec3		(*normal)();
 }				t_primitive;
 
 typedef struct	s_light
 {
-	UCHAR	struct_type;
-	struct s_light	*next;
-	struct s_light	*prev;
 	UCHAR	type;
 	float	power;
 	float	attenuation;
@@ -72,7 +64,7 @@ typedef struct	s_camera
 	float	fov;
 	t_vec3	up;
 	t_vec3	position;
-	t_vec3	direction;
+	t_vec3	lookat;
 	t_ray	ray;
 	t_mat3	transform;
 }				t_camera;
@@ -80,8 +72,9 @@ typedef struct	s_camera
 typedef struct	s_scene
 {
 	t_camera	camera;
-	t_light		*lights;
-	t_primitive	*primitives;
+	t_light		*light;
+	t_primitive	*primitive;
+	t_mtl		*materials;
 }				t_scene;
 
 typedef struct	s_depth_buffer
@@ -107,9 +100,23 @@ float	oren_nayar_diffuse(t_vec3 normal, t_vec3 view, t_vec3 light, t_mtl mtl);
 float	lambert_diffuse(t_vec3 normal, t_vec3 view, t_vec3 light, t_mtl mtl);
 t_vec3	compute_lightdir(t_light l, t_vec3 position);
 /*
-** Primitive intersection funcitons
+** Primitive intersection functions
 */
 enum e_bool	intersect_sphere(t_primitive s, t_ray r, double *current_z);
-enum e_bool	intersect_inf_cylinder(t_primitive s, t_ray r, double *current_z);
-enum e_bool	intersect_inf_cone(t_primitive cp, t_ray r, double *current_z);
+enum e_bool	intersect_cylinder(t_primitive cp, t_ray r, double *current_z);
+enum e_bool	intersect_cone(t_primitive cp, t_ray r, double *current_z);
 enum e_bool	intersect_plane(t_primitive cp, t_ray ray, double *current_z);
+/*
+** Primitive creation functions
+*/
+t_primitive	new_sphere(t_vec3 position, double radius);
+t_primitive	new_cylinder(t_vec3 position, t_vec3 direction, double radius, double size);
+t_primitive	new_cone(t_vec3 position, t_vec3 direction, double radius, double size);
+t_primitive	new_plane(t_vec3 position, t_vec3 direction);
+/*
+** Primitive normal computation functions
+*/
+t_vec3	cylinder_normal(t_vec3 position, t_primitive p);
+t_vec3	sphere_normal(t_vec3 position, t_primitive p);
+t_vec3	plane_normal(t_vec3 position, t_primitive p);
+t_vec3	cone_normal(t_vec3 position, t_primitive p);
