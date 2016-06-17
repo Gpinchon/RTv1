@@ -6,13 +6,13 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/17 20:46:53 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/06/17 21:19:05 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/06/18 01:13:04 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 # include <rt.h>
 # include <stdio.h>
-# define	SUPERSAMPLING	1
+# define	SUPERSAMPLING	4
 
 double		*get_current_z(t_depth_buffer *depth,
 	t_point2 screen_size, t_point2 current)
@@ -37,8 +37,8 @@ t_rgb	compute_illumination(t_primitive p, t_light l, t_vec3 data[4])
 	if (diff > 0)
 	{
 		spec = SPECULAR(data[3], data[2], data[1],
-			p.material.spec_power) * (1 - p.material.roughness);
-		att = 1;
+			p.material.spec_power) * (1 - p.material.roughness) * l.specular;
+		att = l.power;
 		if (l.type != DIRECTIONAL)
 		{
 			att = 1 / pow(fmax(vec3_distance(l.position, data[0]) - l.falloff, 0)
@@ -189,39 +189,56 @@ void	do_raytracer(t_point2 size, t_rt rt)
 {
 	t_point2	current;
 	t_primitive	p[3];
-	t_light		l;
+	t_light		l[5];
 	t_rgb		final_color;
 	t_camera	c;
 	int			primitive_nbr;
+	int			light_nbr;
 
 	primitive_nbr = 3;
-	//c.direction = (t_vec3){0, 0, 1};
-	//c.position = (t_vec3){0, 0, -500};
-	c = new_camera((t_vec3){-1000, 250, -1000}, (t_vec3){0, 0, 0}, (t_vec3){0, 1, 0}, (t_vec2){TO_RADIAN(90), (float)size.y / (float)size.x});
+	light_nbr = 5;
+	c = new_camera((t_vec3){1000, 1500, -1000}, (t_vec3){0, 0, 0}, (t_vec3){0, 1, 0}, (t_vec2){TO_RADIAN(90), (float)size.y / (float)size.x});
 	p[0] = new_sphere((t_vec3){0, 0, 0}, 250);
-	p[1] = new_plane((t_vec3){0, 0, 0}, (t_vec3){-1, 1, 0});
+	p[1] = new_plane((t_vec3){0, 0, 0}, (t_vec3){0, 1, 0});
 	p[2] = new_cylinder((t_vec3){0, 0, 0}, (t_vec3){-1, 1, 0}, 100, 0);
 	p[0].material.diffuse = (t_rgba){0, 0, 1, 1};
 	p[0].material.ambient = (t_rgba){0, 0, 0, 1};
 	p[0].material.specular = (t_rgba){1, 1, 1, 1};
-	p[0].material.spec_power = 30;
-	p[0].material.roughness = 0.5;
+	p[0].material.spec_power = 80;
+	p[0].material.roughness = 0;
 	p[0].material.albedo = 1;
 	p[1].material.diffuse = (t_rgba){0, 1, 1, 1};
 	p[1].material.ambient = (t_rgba){0, 0, 0, 1};
 	p[1].material.specular = (t_rgba){1, 1, 1, 1};
 	p[1].material.spec_power = 30;
-	p[1].material.roughness = 0;
+	p[1].material.roughness = 0.1;
 	p[1].material.albedo = 1;
 	p[2].material = p[0].material;
-	l.type = SPOT;
-	l.direction	= (t_vec3){1, -1, 0};
-	l.position = (t_vec3){-300, 300, -300};
-	l.color = (t_rgb){1, 1, 1};
-	l.power = 1;
-	l.attenuation = 0.002;
-	l.falloff = 300;
-	l.spot_size = 70;
+	p[2].material.spec_power = 10;
+	p[2].material.roughness = 1;
+	l[0].type = POINT;
+	l[0].direction	= (t_vec3){1, -1, 0};
+	l[0].position = (t_vec3){-300, 100, -300};
+	l[0].color = (t_rgb){1, 1, 1};
+	l[0].power = 1;
+	l[0].attenuation = 0.002;
+	l[0].falloff = 300;
+	l[0].spot_size = 150;
+	l[0].specular = 1;
+	l[1] = l[0];
+	l[1].color = (t_rgb){1, 0, 0};
+	l[1].position = (t_vec3){300, 100, 300};
+	l[2] = l[0];
+	l[2].color = (t_rgb){0, 1, 0};
+	l[2].position = (t_vec3){-300, 100, 300};
+	l[3] = l[0];
+	l[3].color = (t_rgb){0, 0, 1};
+	l[3].position = (t_vec3){300, 100, -300};
+	l[4] = l[0];
+	l[4].type = DIRECTIONAL;
+	l[4].position = (t_vec3){0, 1, 0};
+	l[4].power = 0.2;
+	l[4].specular = 0;
 	current.y = 0;
 	while (current.y < size.y)
 	{
@@ -247,7 +264,19 @@ void	do_raytracer(t_point2 size, t_rt rt)
 					{
 						if (p[i].intersect(p[i], c.ray, &z))
 						{
-							color = compute_point_color(p[i], c, l, &z);
+							//color = compute_point_color(p[i], c, l[0], &z);
+							//color = rgba_to_rgb(p[i].material.ambient);
+							int j = 0;
+							while (j < light_nbr)
+							{
+								//color = compute_point_color(p[i], c, l[j], &z);
+								color = j > 0 ? rgb_add(color, compute_point_color(p[i], c, l[j], &z)) :
+									compute_point_color(p[i], c, l[j], &z);
+								//color = rgb_divide(color, j > 0 ? 2 : 1);
+								color = (t_rgb){color.r > 1 ? 1 : color.r, color.g > 1 ? 1 : color.g, color.b > 1 ? 1 : color.b};
+								j++;
+							}
+							color = (t_rgb){color.r > 1 ? 1 : color.r, color.g > 1 ? 1 : color.g, color.b > 1 ? 1 : color.b};
 							z = (z + z) / 2.0;
 						}
 						i++;

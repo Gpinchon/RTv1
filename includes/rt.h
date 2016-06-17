@@ -2,8 +2,8 @@
 # include <mlx_framework.h>
 # include <adv_math.h>
 
-# define	WIDTH		1920
-# define	HEIGHT		1080
+# define	WIDTH		512
+# define	HEIGHT		512
 # define	DIFFUSE		oren_nayar_diffuse
 # define	SPECULAR	trowbridge_reitz_specular
 # define	DIRECTIONAL	0x0
@@ -48,6 +48,7 @@ typedef struct	s_light
 	float	attenuation;
 	float	falloff;
 	float	spot_size;
+	float	specular;
 	t_rgb	color;
 	t_vec3	position;
 	t_vec3	direction;
