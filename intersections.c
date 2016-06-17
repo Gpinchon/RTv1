@@ -66,40 +66,32 @@ enum e_bool Quadratic(double A, double B, double C, double *t0, double *t1)
 	return true;
 }
 
-//enum e_bool	intersect_cylinder(t_primitive cp, t_ray r, double *current_z)
-//{
-//	double	a = (r.direction.x * r.direction.x) + (r.direction.y * r.direction.y);
-//	double	b = 2.0 * ((r.origin.x * r.direction.x) + (r.origin.y * r.direction.y));
-//	double	c = (r.origin.x * r.origin.x) + (r.origin.y * r.origin.y)
-//		- (cp.radius * cp.radius);
-//	double	t[2];
-//	double delta;
-//	delta = sqrt((b * b) - (4.0 * a * c));
-//	if (delta <= 0)
-//		return (false);
-//	t[0] = (-b - delta) / (2.0 * a);
-//	t[1] = (-b + delta) / (2.0 * a);
-//	return (test_intersect(t, current_z));
-//}
+//c.position = cylinder center
+//c.direction = cylinder axis (unit vector)
+//r.origin = ray origin
+//r.direction = ray direction (unit vector)
 
-//enum e_bool	intersect_cylinder(t_primitive cp, t_ray r, double *current_z)
-//{
-//	t_vec3 eye = vec3_substract(r.origin, cp.position);
-//	double	a = (r.direction.x * r.direction.x) + (r.direction.z * r.direction.z);
-//	double	b = 2.0 * ((eye.x * r.direction.x) + (eye.z * r.direction.z));
-//	double	c = (eye.x * eye.x) + (eye.z * eye.z)
-//		- (cp.radius * cp.radius);
-//	double	t[2];
-//	double delta;
-//	delta = sqrt((b * b) - (4.0 * a * c));
-//	if (delta <= 0)
-//		return (false);
-//	t[0] = (-b - delta) / (2.0 * a);
-//	t[1] = (-b + delta) / (2.0 * a);
-//	return (test_intersect(t, current_z));
-//}
 
-//enum e_bool	intersect_cylinder(t_primitive cp, t_ray r, double *current_z)
+enum e_bool	intersect_inf_cylinder(t_primitive cp, t_ray r, double *current_z)
+{
+	t_vec3 Cperp = vec3_substract(cp.position, vec3_project(cp.position, cp.direction));
+	t_vec3 Pperp = vec3_substract(r.origin, vec3_project(r.origin, cp.direction));
+	t_vec3 Dperp = vec3_substract(r.direction, vec3_project(r.direction, cp.direction));
+	t_vec3 eye = vec3_substract(Pperp, Cperp);
+	double a = vec3_dot(Dperp, Dperp);
+	double b = vec3_dot(eye, Dperp) * 2.0;
+	double c = vec3_dot(eye, eye) - (cp.radius * cp.radius);
+	double	t[2];
+	double delta;
+	delta = sqrt((b * b) - (4.0 * a * c));
+	if (delta <= 0)
+		return (false);
+	t[0] = (-b - delta) / (2.0 * a);
+	t[1] = (-b + delta) / (2.0 * a);
+	return (test_intersect(t, current_z));
+}
+
+//enum e_bool	intersect_inf_cylinder(t_primitive cp, t_ray r, double *current_z)
 //{
 //	t_vec3 eye = vec3_substract(r.origin, cp.position);
 //	double 	a = vec3_dot(r.direction, r.direction) - pow(vec3_dot(r.direction, cp.direction), 2);
@@ -115,7 +107,7 @@ enum e_bool Quadratic(double A, double B, double C, double *t0, double *t1)
 //	return (test_intersect(t, current_z));
 //}
 
-//enum e_bool	intersect_cylinder(t_primitive cp, t_ray r, double *current_z)
+//enum e_bool	intersect_inf_cylinder(t_primitive cp, t_ray r, double *current_z)
 //{
 //	t_vec3 o = vec3_substract(r.origin, cp.position);
 //	t_vec3 rdd = vec3_substract(r.direction, vec3_scale(cp.direction, vec3_dot(r.direction, cp.direction)));
@@ -134,23 +126,24 @@ enum e_bool Quadratic(double A, double B, double C, double *t0, double *t1)
 //	return (test_intersect(t, current_z));
 //}
 
-enum e_bool	intersect_inf_cylinder(t_primitive cp, t_ray r, double *current_z)
-{
-	t_vec3	pdp = vec3_substract(cp.direction, cp.position);
-	t_vec3	eyexpdp = vec3_cross(vec3_substract(r.origin, cp.position), pdp);
-	t_vec3	rdxpdp = vec3_cross(r.direction, pdp);
-	double	a = vec3_dot(rdxpdp, rdxpdp);
-	double	b = 2 * vec3_dot(rdxpdp, eyexpdp);
-	double	c = vec3_dot(eyexpdp, eyexpdp) - (cp.radius * cp.radius * vec3_dot(pdp, pdp));
-	double	t[2];
-	double delta;
-	delta = sqrt((b * b) - (4.0 * a * c));
-	if (delta <= 0)
-		return (false);
-	t[0] = (-b - (delta)) / (2.0 * a);
-	t[1] = (-b + (delta)) / (2.0 * a);
-	return (test_intersect(t, current_z));
-}
+//enum e_bool	intersect_inf_cylinder(t_primitive cp, t_ray r, double *current_z)
+//{
+//	t_vec3	pdp = vec3_substract(cp.direction, cp.position);
+//	t_vec3	eyexpdp = vec3_cross(vec3_substract(r.origin, cp.position), pdp);
+//	t_vec3	rdxpdp = vec3_cross(r.direction, pdp);
+//	double	a = vec3_dot(rdxpdp, rdxpdp);
+//	double	b = 2 * vec3_dot(rdxpdp, eyexpdp);
+//	double	c = vec3_dot(eyexpdp, eyexpdp) - (cp.radius * cp.radius * vec3_dot(pdp, pdp));
+//	double	t[2];
+//	double delta;
+//	delta = sqrt((b * b) - (4.0 * a * c));
+//	if (delta <= 0)
+//		return (false);
+//	t[0] = (-b - (delta)) / (2.0 * a);
+//	t[1] = (-b + (delta)) / (2.0 * a);
+//	return (test_intersect(t, current_z));
+//}
+
 //D = raydir
 //O = rayorigin
 //X = eye

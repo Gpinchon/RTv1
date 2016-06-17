@@ -1,5 +1,10 @@
 #include "../../adv_math.h"
 
+t_vec3	vec3_project(t_vec3 v, t_vec3 v1)
+{
+	return (vec3_scale(v1, vec3_dot(v, v1) / vec3_dot(v1, v1)));
+}
+
 t_vec3	vec3_add(t_vec3 vector1, t_vec3 vector2)
 {
 	return ((t_vec3){

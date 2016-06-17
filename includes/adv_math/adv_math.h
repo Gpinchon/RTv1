@@ -67,6 +67,7 @@ t_vec3	vec3_scale(t_vec3 v, float d);
 t_vec3	vec3_fdivide(t_vec3 v, float d);
 t_vec3	vec3_abs(t_vec3 v);
 t_vec3	vec3_negate(t_vec3 v);
+t_vec3	vec3_project(t_vec3 v, t_vec3 v1);
 float	vec3_length(t_vec3 v);
 /*
 ** Linear Interpolation

@@ -14,11 +14,6 @@ double		*get_current_z(t_depth_buffer *depth,
 		[(int)floor(depth->size.y / (float)screen_size.y * current.y)]);
 }
 
-t_vec3	vec3_proj_vec3(t_vec3 v, t_vec3 v1)
-{
-	return (vec3_scale(v1, vec3_dot(v, v1) / vec3_dot(v1, v1)));
-}
-
 t_rgb	compute_point_color(t_primitive p, t_camera c, t_light l, double *current_z)
 {
 	t_vec3		normal = p.direction;
@@ -33,7 +28,7 @@ t_rgb	compute_point_color(t_primitive p, t_camera c, t_light l, double *current_
 	if (p.type == INFCYLINDER)
 	{
 		t_vec3	co = vec3_substract(position, p.position);
-		t_vec3	vpersp = vec3_substract(co, vec3_proj_vec3(co, p.direction));
+		t_vec3	vpersp = vec3_substract(co, vec3_project(co, p.direction));
 		normal = vec3_normalize(vec3_add(vpersp, vec3_normalize(vpersp)));
 	}
 	else if (p.type == SPHERE)
@@ -80,7 +75,6 @@ t_rgb	compute_point_color(t_primitive p, t_camera c, t_light l, double *current_
 	}
 	return (color);
 }
-
 
 t_vec3				vec3_rotx(const t_vec3 vec, const double r)
 {
@@ -132,7 +126,6 @@ t_vec3				vec3_rotz(const t_vec3 vec, const double r)
 
 t_camera	new_camera(t_vec3 position, t_vec3 lookat, t_vec3 up, float vfov, float aspect)
 {
-	printf("%f, %f\n", vfov, aspect);
 	t_vec3 v = vec3_substract(lookat, position);  // create view vector
 	t_vec3 r = vec3_normalize(vec3_cross(v, up));// v.cross(up).unit(); // find right vector
 	t_vec3 u = vec3_normalize(vec3_cross(r, v));// r.cross(v).unit();  // orthogonalise up vector
@@ -185,11 +178,11 @@ void	do_raytracer(t_point2 size, t_rt rt)
 
 	//c.direction = (t_vec3){0, 0, 1};
 	//c.position = (t_vec3){0, 0, -500};
-	c = new_camera((t_vec3){0, 200, -300}, (t_vec3){0, 0, 0}, (t_vec3){0, 1, 0}, TO_RADIAN(30), (float)size.y / (float)size.x);
-	p[0].position = (t_vec3){0, 0, 0};
-	p[0].direction = (t_vec3){1, 0, 0};
+	c = new_camera((t_vec3){0, 0, -100}, (t_vec3){0, 0, 0}, (t_vec3){0, 1, 0}, TO_RADIAN(30), (float)size.y / (float)size.x);
+	p[0].position = (t_vec3){50, 0, 0};
+	p[0].direction = (t_vec3){1, 1, 1};
 	p[0].type = INFCYLINDER;
-	p[0].radius = 50;
+	p[0].radius = 20;
 	p[0].size = 200;
 	p[0].material.diffuse = (t_rgba){0, 0, 1, 1};
 	p[0].material.ambient = (t_rgba){0, 0, 0, 1};
@@ -199,8 +192,8 @@ void	do_raytracer(t_point2 size, t_rt rt)
 	p[0].material.albedo = 1;
 	p[1].position = (t_vec3){0, 0, 0};
 	p[1].direction = (t_vec3){0, 1, 0};
-	p[1].type = INFCONE;
-	p[1].radius = 20;
+	p[1].type = SPHERE;
+	p[1].radius = 50;
 	p[1].size = 200;
 	p[1].material.diffuse = (t_rgba){0, 1, 1, 1};
 	p[1].material.ambient = (t_rgba){0, 0, 0, 1};
@@ -208,7 +201,7 @@ void	do_raytracer(t_point2 size, t_rt rt)
 	p[1].material.spec_power = 30;
 	p[1].material.roughness = 0;
 	p[1].material.albedo = 1;
-	l.type = POINT;
+	l.type = DIRECTIONAL;
 	l.direction	= (t_vec3){0.5, -0.5, 0};
 	l.position = (t_vec3){-100, 100, -250};
 	l.color = (t_rgb){1, 1, 1};
