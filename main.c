@@ -6,13 +6,13 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/17 20:46:53 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/06/18 01:13:04 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/06/18 22:02:18 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 # include <rt.h>
 # include <stdio.h>
-# define	SUPERSAMPLING	4
+# define	SUPERSAMPLING	1
 
 double		*get_current_z(t_depth_buffer *depth,
 	t_point2 screen_size, t_point2 current)
@@ -188,91 +188,42 @@ t_ray	generate_ray(t_camera gopro, float x, float y)
 void	do_raytracer(t_point2 size, t_rt rt)
 {
 	t_point2	current;
-	t_primitive	p[3];
-	t_light		l[5];
 	t_rgb		final_color;
-	t_camera	c;
-	int			primitive_nbr;
-	int			light_nbr;
+	t_vec2		fcur;
+	double		*current_z;
+	double		z;
+	int i = 0;
+	int j = 0;
 
-	primitive_nbr = 3;
-	light_nbr = 5;
-	c = new_camera((t_vec3){1000, 1500, -1000}, (t_vec3){0, 0, 0}, (t_vec3){0, 1, 0}, (t_vec2){TO_RADIAN(90), (float)size.y / (float)size.x});
-	p[0] = new_sphere((t_vec3){0, 0, 0}, 250);
-	p[1] = new_plane((t_vec3){0, 0, 0}, (t_vec3){0, 1, 0});
-	p[2] = new_cylinder((t_vec3){0, 0, 0}, (t_vec3){-1, 1, 0}, 100, 0);
-	p[0].material.diffuse = (t_rgba){0, 0, 1, 1};
-	p[0].material.ambient = (t_rgba){0, 0, 0, 1};
-	p[0].material.specular = (t_rgba){1, 1, 1, 1};
-	p[0].material.spec_power = 80;
-	p[0].material.roughness = 0;
-	p[0].material.albedo = 1;
-	p[1].material.diffuse = (t_rgba){0, 1, 1, 1};
-	p[1].material.ambient = (t_rgba){0, 0, 0, 1};
-	p[1].material.specular = (t_rgba){1, 1, 1, 1};
-	p[1].material.spec_power = 30;
-	p[1].material.roughness = 0.1;
-	p[1].material.albedo = 1;
-	p[2].material = p[0].material;
-	p[2].material.spec_power = 10;
-	p[2].material.roughness = 1;
-	l[0].type = POINT;
-	l[0].direction	= (t_vec3){1, -1, 0};
-	l[0].position = (t_vec3){-300, 100, -300};
-	l[0].color = (t_rgb){1, 1, 1};
-	l[0].power = 1;
-	l[0].attenuation = 0.002;
-	l[0].falloff = 300;
-	l[0].spot_size = 150;
-	l[0].specular = 1;
-	l[1] = l[0];
-	l[1].color = (t_rgb){1, 0, 0};
-	l[1].position = (t_vec3){300, 100, 300};
-	l[2] = l[0];
-	l[2].color = (t_rgb){0, 1, 0};
-	l[2].position = (t_vec3){-300, 100, 300};
-	l[3] = l[0];
-	l[3].color = (t_rgb){0, 0, 1};
-	l[3].position = (t_vec3){300, 100, -300};
-	l[4] = l[0];
-	l[4].type = DIRECTIONAL;
-	l[4].position = (t_vec3){0, 1, 0};
-	l[4].power = 0.2;
-	l[4].specular = 0;
 	current.y = 0;
 	while (current.y < size.y)
 	{
 		current.x = 0;
 		while (current.x < size.x)
 		{
-			t_vec2		fcur;
-			double		*current_z;
 			fcur.y = current.y;
 			final_color = (t_rgb){0, 0, 0};
 			current_z = get_current_z(rt.depth, size, current);
-			double z = -1;
+			z = -1;
+
 			while (fcur.y < current.y + 1)
 			{
 				fcur.x = current.x;
 				while (fcur.x < current.x + 1)
 				{
-					int i = 0;
-					c.ray = generate_ray(c, (size.x - 2 * fcur.x), (size.y - 2 * fcur.y));
-					t_rgb color = rgb_divide(get_image_color(rt.image, current), 255);
+					i = 0;
+					rt.scene.camera.ray = generate_ray(rt.scene.camera, (size.x - 2 * fcur.x), (size.y - 2 * fcur.y));
+					t_rgb color = rgb_divide(BACKGROUND, 255);
 					z = -1;
-					while (i < primitive_nbr)
+					while (i < rt.scene.primitive_nbr)
 					{
-						if (p[i].intersect(p[i], c.ray, &z))
+						if (rt.scene.primitive[i].intersect(rt.scene.primitive[i], rt.scene.camera.ray, &z))
 						{
-							//color = compute_point_color(p[i], c, l[0], &z);
-							//color = rgba_to_rgb(p[i].material.ambient);
-							int j = 0;
-							while (j < light_nbr)
+							j = 0;
+							while (j < rt.scene.light_nbr)
 							{
-								//color = compute_point_color(p[i], c, l[j], &z);
-								color = j > 0 ? rgb_add(color, compute_point_color(p[i], c, l[j], &z)) :
-									compute_point_color(p[i], c, l[j], &z);
-								//color = rgb_divide(color, j > 0 ? 2 : 1);
+								color = j > 0 ? rgb_add(color, compute_point_color(rt.scene.primitive[i], rt.scene.camera, rt.scene.light[j], &z)) :
+									compute_point_color(rt.scene.primitive[i], rt.scene.camera, rt.scene.light[j], &z);
 								color = (t_rgb){color.r > 1 ? 1 : color.r, color.g > 1 ? 1 : color.g, color.b > 1 ? 1 : color.b};
 								j++;
 							}
@@ -295,7 +246,6 @@ void	do_raytracer(t_point2 size, t_rt rt)
 		}
 		current.y++;
 	}
-	printf("done\n");
 }
 
 t_depth_buffer	*new_depth_buffer(t_point2 size)
@@ -336,13 +286,84 @@ void		*destroy_depth_buffer(t_depth_buffer *d)
 
 int	check_key(int key, t_rt *rt)
 {
+	//printf("%i\n", key);
 	if (key == 53 || key == 65307)
 	{
 		destroy_framework(rt->framework);
 		destroy_depth_buffer(rt->depth);
 		exit(0);
 	}
+	else if (key == 65362)
+	{
+		rt->scene.camera.position.x += 50;
+		rt->scene.camera = update_camera(rt->scene.camera, HEIGHT / (double)WIDTH);
+		do_raytracer((t_point2){WIDTH, HEIGHT}, *rt);
+	}
+	else if (key == 65364)
+	{
+		rt->scene.camera.position.x -= 50;
+		rt->scene.camera = update_camera(rt->scene.camera, HEIGHT / (double)WIDTH);
+		do_raytracer((t_point2){WIDTH, HEIGHT}, *rt);
+	}
+	else if (key == 65361)
+	{
+		rt->scene.camera.position.z += 50;
+		rt->scene.camera = update_camera(rt->scene.camera, HEIGHT / (double)WIDTH);
+		do_raytracer((t_point2){WIDTH, HEIGHT}, *rt);
+	}
+	else if (key == 65363)
+	{
+		rt->scene.camera.position.z -= 50;
+		rt->scene.camera = update_camera(rt->scene.camera, HEIGHT / (double)WIDTH);
+		do_raytracer((t_point2){WIDTH, HEIGHT}, *rt);
+	}
+	else if (key == 65451)
+	{
+		rt->scene.camera.position.y += 50;
+		rt->scene.camera = update_camera(rt->scene.camera, HEIGHT / (double)WIDTH);
+		do_raytracer((t_point2){WIDTH, HEIGHT}, *rt);
+	}
+	else if (key == 65453)
+	{
+		rt->scene.camera.position.y -= 50;
+		rt->scene.camera = update_camera(rt->scene.camera, HEIGHT / (double)WIDTH);
+		do_raytracer((t_point2){WIDTH, HEIGHT}, *rt);
+	}
+	refresh_window(rt->window);
 	return(0);
+}
+
+/*
+** factors.x == spec_power
+** factors.y == roughness
+** factors.z == albedo
+*/
+t_mtl	new_mtl(t_rgba diffuse, t_rgba ambient, t_rgba specular, t_vec3 factors)
+{
+	t_mtl material;
+
+	material.diffuse = diffuse;
+	material.ambient = ambient;
+	material.specular = specular;
+	material.spec_power = factors.x;
+	material.roughness = factors.y;
+	material.albedo = factors.z;
+	return (material);
+}
+
+t_light	new_light(int type, t_vec3 position, t_rgb color, float power, float attenuation, float falloff, float spot_size, float specular)
+{
+	t_light	light;
+
+	light.type = type;
+	light.position = position;
+	light.color = color;
+	light.power = power;
+	light.attenuation = attenuation;
+	light.falloff = falloff;
+	light.spot_size = spot_size;
+	light.specular = specular;
+	return (light);
 }
 
 int main()
@@ -352,13 +373,22 @@ int main()
 	rt.window = new_window(rt.framework, WIDTH, HEIGHT, "RTv1");
 	rt.image = new_image(rt.framework, WIDTH, HEIGHT, "display");
 	rt.depth = new_depth_buffer((t_point2){1, 1});
+	rt.scene.camera = new_camera((t_vec3){-250, 250, 250}, (t_vec3){0, 0, 0}, (t_vec3){0, 1, 0}, (t_vec2){TO_RADIAN(90), HEIGHT / (double)WIDTH});
+	rt.scene.primitive = (t_primitive[]){new_sphere((t_vec3){0, 0, 0}, 250), new_plane((t_vec3){0, 0, 0}, (t_vec3){0, 1, 0}), new_cylinder((t_vec3){0, 0, 0}, (t_vec3){-1, 1, 0}, 100, 1000)};
+	rt.scene.primitive[0].material = new_mtl((t_rgba){0, 0, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){80, 0, 1});
+	rt.scene.primitive[1].material = new_mtl((t_rgba){0, 1, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){30, 0.3, 1});
+	rt.scene.primitive[2].material = new_mtl((t_rgba){0, 0, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){80, 1, 1});
+	rt.scene.primitive_nbr = 3;
+	rt.scene.light = (t_light[]){new_light(POINT, (t_vec3){300, 300, 300}, (t_rgb){1, 1, 1}, 1, 0.002, 300, 150, 1),
+		new_light(POINT, (t_vec3){-300, 300, -300}, (t_rgb){0, 0, 1}, 1, 0.002, 300, 150, 1)};
+	rt.scene.light_nbr = 2;
 	attach_image_to_window(rt.image, rt.window);
-	fill_image(rt.image, (t_rgb){127, 127, 127});
+	fill_image(rt.image, BACKGROUND);
 	refresh_window(rt.window);
 	key_callback(rt.window, check_key, &rt);
 	loop_callback(rt.framework, refresh_window, rt.window);
 	do_raytracer((t_point2){WIDTH, HEIGHT}, rt);
-	rt.depth = destroy_depth_buffer(rt.depth);
+	//rt.depth = destroy_depth_buffer(rt.depth);
 	init_loop(rt.framework);
 	return (0);
 }

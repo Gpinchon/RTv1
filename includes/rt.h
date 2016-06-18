@@ -2,8 +2,9 @@
 # include <mlx_framework.h>
 # include <adv_math.h>
 
-# define	WIDTH		512
-# define	HEIGHT		512
+# define	WIDTH		640
+# define	HEIGHT		480
+# define	BACKGROUND	(t_rgb){127, 127, 127}
 # define	DIFFUSE		oren_nayar_diffuse
 # define	SPECULAR	trowbridge_reitz_specular
 # define	DIRECTIONAL	0x0
@@ -76,6 +77,8 @@ typedef struct	s_scene
 	t_light		*light;
 	t_primitive	*primitive;
 	t_mtl		*materials;
+	int			primitive_nbr;
+	int			light_nbr;
 }				t_scene;
 
 typedef struct	s_depth_buffer
@@ -89,6 +92,7 @@ typedef struct	s_rt
 	void			*framework;
 	void			*window;
 	void			*image;
+	t_scene			scene;
 	t_depth_buffer	*depth;
 }				t_rt;
 

@@ -22,5 +22,5 @@ void	mouse_callback(t_window *window, int (*fun)(), void *arg)
 void	key_callback(t_window *window, int (*fun)(), void *arg)
 {
 	FRAMEWORK_DEBUG(!window, NULL_WINDOW_POINTER, "In key_callback\n");
-	mlx_key_hook(window->mlx_window, fun, arg);
+	mlx_hook(window->mlx_window, 2, (1L<<0), fun, arg);
 }
