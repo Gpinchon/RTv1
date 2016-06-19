@@ -83,7 +83,7 @@ typedef struct	s_scene
 
 typedef struct	s_depth_buffer
 {
-	double		**buffer;
+	float		**buffer;
 	t_point2	size;
 }				t_depth_buffer;
 
@@ -107,16 +107,16 @@ t_vec3	compute_lightdir(t_light l, t_vec3 position);
 /*
 ** Primitive intersection functions
 */
-enum e_bool	intersect_sphere(t_primitive s, t_ray r, double *current_z);
-enum e_bool	intersect_cylinder(t_primitive cp, t_ray r, double *current_z);
-enum e_bool	intersect_cone(t_primitive cp, t_ray r, double *current_z);
-enum e_bool	intersect_plane(t_primitive cp, t_ray ray, double *current_z);
+enum e_bool	intersect_sphere(t_primitive s, t_ray r, float *current_z);
+enum e_bool	intersect_cylinder(t_primitive cp, t_ray r, float *current_z);
+enum e_bool	intersect_cone(t_primitive cp, t_ray r, float *current_z);
+enum e_bool	intersect_plane(t_primitive cp, t_ray ray, float *current_z);
 /*
 ** Primitive creation functions
 */
-t_primitive	new_sphere(t_vec3 position, double radius);
-t_primitive	new_cylinder(t_vec3 position, t_vec3 direction, double radius, double size);
-t_primitive	new_cone(t_vec3 position, t_vec3 direction, double radius, double size);
+t_primitive	new_sphere(t_vec3 position, float radius);
+t_primitive	new_cylinder(t_vec3 position, t_vec3 direction, float radius, float size);
+t_primitive	new_cone(t_vec3 position, t_vec3 direction, float radius, float size);
 t_primitive	new_plane(t_vec3 position, t_vec3 direction);
 /*
 ** Primitive normal computation functions

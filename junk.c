@@ -29,7 +29,7 @@ void initcam( t_vec3 a_Pos, t_vec3 a_Target )
 	t_vec3 m_DY = vec3_scale(vec3_substract(m_P4, m_P1), (1.0f / m_Height));
 }
 
-t_rgb	compute_point_color(t_primitive p, t_camera c, t_light l, double *current_z)
+t_rgb	compute_point_color(t_primitive p, t_camera c, t_light l, float *current_z)
 {
 	t_vec3		normal;
 	t_vec3		position;
@@ -43,7 +43,7 @@ t_rgb	compute_point_color(t_primitive p, t_camera c, t_light l, double *current_
 	normal = p.normal(position, p);
 	light_dir = compute_lightdir(l, position);
 	view_dir = vec3_normalize(vec3_substract(c.ray.origin, position));
-	double	diffuse = DIFFUSE(normal, view_dir, light_dir, p.material);
+	float	diffuse = DIFFUSE(normal, view_dir, light_dir, p.material);
 	if (l.type == SPOT)
 		diffuse *= vec3_dot(vec3_normalize(l.direction),
 		vec3_negate(light_dir)) > cos(TO_RADIAN(l.spot_size / 2.0)) ? 1 : 0;

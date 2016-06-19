@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/17 20:46:53 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/06/19 21:55:06 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/06/20 00:03:38 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 # include <stdio.h>
 # define	SUPERSAMPLING	1
 
-double		*get_current_z(t_depth_buffer *depth,
+float		*get_current_z(t_depth_buffer *depth,
 	t_point2 screen_size, t_point2 current)
 {
 	return (&depth->buffer
@@ -25,9 +25,9 @@ double		*get_current_z(t_depth_buffer *depth,
 t_rgb	compute_illumination(t_primitive p, t_light l, t_vec3 data[4])
 {
 	t_rgb		c;
-	double		diff;
-	double		spec;
-	double 		att;
+	float		diff;
+	float		spec;
+	float 		att;
 
 	diff = DIFFUSE(data[3], data[2], data[1], p.material);
 	if (l.type == SPOT)
@@ -54,7 +54,7 @@ t_rgb	compute_illumination(t_primitive p, t_light l, t_vec3 data[4])
 	return (c);
 }
 
-t_rgb	compute_point_color(t_primitive p, t_camera c, t_light l, double *z)
+t_rgb	compute_point_color(t_primitive p, t_camera c, t_light l, float *z)
 {
 	t_vec3		position;
 	t_vec3		light_dir;
@@ -72,10 +72,10 @@ t_rgb	compute_point_color(t_primitive p, t_camera c, t_light l, double *z)
 	return ((t_rgb){clamp(color.r, 0, 1), clamp(color.g, 0, 1), clamp(color.b, 0, 1)});
 }
 
-t_vec3				vec3_rotx(const t_vec3 vec, const double r)
+t_vec3				vec3_rotx(const t_vec3 vec, const float r)
 {
-	double			cos_r;
-	double			sin_r;
+	float			cos_r;
+	float			sin_r;
 	t_vec3			ret;
 
 	if (!r)
@@ -88,10 +88,10 @@ t_vec3				vec3_rotx(const t_vec3 vec, const double r)
 	return (ret);
 }
 
-t_vec3				vec3_roty(const t_vec3 vec, const double r)
+t_vec3				vec3_roty(const t_vec3 vec, const float r)
 {
-	double			cos_r;
-	double			sin_r;
+	float			cos_r;
+	float			sin_r;
 	t_vec3			ret;
 
 	if (!r)
@@ -104,10 +104,10 @@ t_vec3				vec3_roty(const t_vec3 vec, const double r)
 	return (ret);
 }
 
-t_vec3				vec3_rotz(const t_vec3 vec, const double r)
+t_vec3				vec3_rotz(const t_vec3 vec, const float r)
 {
-	double			cos_r;
-	double			sin_r;
+	float			cos_r;
+	float			sin_r;
 	t_vec3			ret;
 
 	if (!r)
@@ -156,7 +156,7 @@ t_camera	new_camera(t_vec3 position, t_vec3 lookat, t_vec3 up, t_vec2 d)
 	return (gopro);
 }
 
-t_camera	update_camera(t_camera gopro, double aspect)
+t_camera	update_camera(t_camera gopro, float aspect)
 {
 	t_vec3		v;
 	t_vec3		r;
@@ -173,7 +173,7 @@ t_camera	update_camera(t_camera gopro, double aspect)
 	gopro.transform = (t_mat3){.m = {
 		r.x * 2, r.y * 2, r.z * 2,
 		u.x * 2, u.y * 2, u.z * 2,
-		v.x, v.y, v.z
+		v.x, v.y, v.z, 
 	}};
 	//gopro.transform = (t_mat3){.m = {
 	//r.x * 2, u.x * 2, v.x,
@@ -188,7 +188,7 @@ t_ray	generate_ray(t_camera gopro, float x, float y)
 	t_ray ray;
 
 	ray.origin = gopro.position;
-	ray.direction = vec3_normalize(m3_mult_vec3(gopro.transform,
+	ray.direction = (m3_mult_vec3(gopro.transform,
 					(new_vec3(x, y, 1))));
 	return (ray);
 }
@@ -196,16 +196,14 @@ t_ray	generate_ray(t_camera gopro, float x, float y)
 t_ray	generate_shadow_ray(t_camera c, t_light l, float z)
 {
 	t_ray	ray;
-	t_vec3	pi;
 
-	pi = (t_vec3){
+	ray.origin = (t_vec3){
 		(c.ray.origin.x + c.ray.direction.x * z),
 		(c.ray.origin.y + c.ray.direction.y * z),
 		(c.ray.origin.z + c.ray.direction.z * z)};;
-	//ray.direction = vec3_normalize(vec3_substract(ray.origin, l.position));
-	ray.direction = l.type == DIRECTIONAL ? vec3_normalize(l.position) : vec3_normalize(vec3_substract(l.position, pi));
-	//printf("%f, %f, %f\n", ray.origin.x, ray.origin.y, ray.origin.z);
-	ray.origin = vec3_add(pi, vec3_scale(ray.direction, 0.001));
+	ray.direction = l.type == DIRECTIONAL ? vec3_normalize(l.position) : vec3_normalize(vec3_substract(l.position, ray.origin));
+	//ray.direction = l.type == DIRECTIONAL ? vec3_normalize(l.position) : vec3_normalize(vec3_substract(ray.origin, l.position));
+	ray.origin = vec3_add(ray.origin, vec3_scale(ray.direction, 0.5));
 	return (ray);
 }
 
@@ -214,8 +212,8 @@ void	do_raytracer(t_point2 size, t_rt rt)
 	t_point2	current;
 	t_rgb		final_color;
 	t_vec2		fcur;
-	double		*current_z;
-	double		z;
+	float		*current_z;
+	float		z;
 	int i = 0;
 	int j = 0;
 	int k;
@@ -251,7 +249,7 @@ void	do_raytracer(t_point2 size, t_rt rt)
 								while (k < rt.scene.primitive_nbr)
 								{
 									t_ray	shadow_ray = generate_shadow_ray(rt.scene.camera, rt.scene.light[j], z);
-									double	fake_z = vec3_distance(rt.scene.light[j].position, shadow_ray.origin);
+									float	fake_z = vec3_distance(rt.scene.light[j].position, shadow_ray.origin);
 									if (rt.scene.primitive[k].intersect(rt.scene.primitive[k], shadow_ray, &fake_z))
 									{
 										in_shadow = true;
@@ -259,18 +257,14 @@ void	do_raytracer(t_point2 size, t_rt rt)
 									}
 									k++;
 								}
-								//if (in_shadow)
-								//	printf("%i\n", in_shadow);
 								if (!in_shadow)
 									color = j > 0 ? rgb_add(color, compute_point_color(rt.scene.primitive[i], rt.scene.camera, rt.scene.light[j], &z)) :
 									compute_point_color(rt.scene.primitive[i], rt.scene.camera, rt.scene.light[j], &z);
 								else
 									color = j > 0 ? rgb_add(color, rgba_to_rgb(rt.scene.primitive[i].material.ambient)) : rgba_to_rgb(rt.scene.primitive[i].material.ambient);
-								//color = (t_rgb){color.r > 1 ? 1 : color.r, color.g > 1 ? 1 : color.g, color.b > 1 ? 1 : color.b};
 								j++;
 							}
-							//color = (t_rgb){color.r > 1 ? 1 : color.r, color.g > 1 ? 1 : color.g, color.b > 1 ? 1 : color.b};
-							z = (z + z) / 2.0;
+							z = (z + z) * 0.5;
 						}
 						i++;
 					}
@@ -296,10 +290,10 @@ t_depth_buffer	*new_depth_buffer(t_point2 size)
 
 	n = ft_memalloc(sizeof(t_depth_buffer));
 	n->size = size;
-	n->buffer = ft_memalloc(sizeof(double) * size.x);
+	n->buffer = ft_memalloc(sizeof(float*) * size.x);
 	while (size.x)
 	{
-		n->buffer[size.x - 1] = ft_memalloc(sizeof(double) * n->size.y);
+		n->buffer[size.x - 1] = ft_memalloc(sizeof(float) * n->size.y);
 		while (size.y)
 		{
 			n->buffer[size.x - 1][size.y - 1] = -1;
@@ -338,37 +332,37 @@ int	check_key(int key, t_rt *rt)
 	else if (key == 65362)
 	{
 		rt->scene.camera.position.x += 50;
-		rt->scene.camera = update_camera(rt->scene.camera, HEIGHT / (double)WIDTH);
+		rt->scene.camera = update_camera(rt->scene.camera, HEIGHT / (float)WIDTH);
 		do_raytracer((t_point2){WIDTH, HEIGHT}, *rt);
 	}
 	else if (key == 65364)
 	{
 		rt->scene.camera.position.x -= 50;
-		rt->scene.camera = update_camera(rt->scene.camera, HEIGHT / (double)WIDTH);
+		rt->scene.camera = update_camera(rt->scene.camera, HEIGHT / (float)WIDTH);
 		do_raytracer((t_point2){WIDTH, HEIGHT}, *rt);
 	}
 	else if (key == 65361)
 	{
 		rt->scene.camera.position.z += 50;
-		rt->scene.camera = update_camera(rt->scene.camera, HEIGHT / (double)WIDTH);
+		rt->scene.camera = update_camera(rt->scene.camera, HEIGHT / (float)WIDTH);
 		do_raytracer((t_point2){WIDTH, HEIGHT}, *rt);
 	}
 	else if (key == 65363)
 	{
 		rt->scene.camera.position.z -= 50;
-		rt->scene.camera = update_camera(rt->scene.camera, HEIGHT / (double)WIDTH);
+		rt->scene.camera = update_camera(rt->scene.camera, HEIGHT / (float)WIDTH);
 		do_raytracer((t_point2){WIDTH, HEIGHT}, *rt);
 	}
 	else if (key == 65451)
 	{
 		rt->scene.camera.position.y += 50;
-		rt->scene.camera = update_camera(rt->scene.camera, HEIGHT / (double)WIDTH);
+		rt->scene.camera = update_camera(rt->scene.camera, HEIGHT / (float)WIDTH);
 		do_raytracer((t_point2){WIDTH, HEIGHT}, *rt);
 	}
 	else if (key == 65453)
 	{
 		rt->scene.camera.position.y -= 50;
-		rt->scene.camera = update_camera(rt->scene.camera, HEIGHT / (double)WIDTH);
+		rt->scene.camera = update_camera(rt->scene.camera, HEIGHT / (float)WIDTH);
 		do_raytracer((t_point2){WIDTH, HEIGHT}, *rt);
 	}
 	refresh_window(rt->window);
@@ -414,11 +408,11 @@ int main()
 	rt.framework = init_mlx_framework();
 	rt.window = new_window(rt.framework, WIDTH, HEIGHT, "RTv1");
 	rt.image = new_image(rt.framework, WIDTH, HEIGHT, "display");
-	rt.depth = new_depth_buffer((t_point2){1, 1});
-	rt.scene.camera = new_camera((t_vec3){300, 300, 300}, (t_vec3){0, 0, 0}, (t_vec3){0, 1, 0}, (t_vec2){TO_RADIAN(45), HEIGHT / (double)WIDTH});
+	rt.depth = new_depth_buffer((t_point2){512, 512});
+	rt.scene.camera = new_camera((t_vec3){300, 300, 300}, (t_vec3){0, 100, 0}, (t_vec3){0, 1, 0}, (t_vec2){TO_RADIAN(45), HEIGHT / (float)WIDTH});
 	rt.scene.primitive = (t_primitive[]){
-		new_sphere((t_vec3){0, 50, 0}, 100),
-		new_sphere((t_vec3){150, 25, 0}, 50),
+		new_sphere((t_vec3){0, 125, 0}, 125),
+		new_sphere((t_vec3){150, 50, 0}, 50),
 		new_plane((t_vec3){0, 0, 0}, (t_vec3){0, 1, 0}),
 		new_cylinder((t_vec3){250, 0, 250}, (t_vec3){0, 1, 0}, 10, 100),
 		new_cone((t_vec3){250, 250, 250}, (t_vec3){0, -1, 0}, 20, 200)};
@@ -432,7 +426,7 @@ int main()
 		new_light(POINT, (t_vec3){-300, 300, -300}, (t_rgb){1, 1, 1}, 1, 0.002, 300, 150, 1),
 		new_light(POINT, (t_vec3){300, 300, -300}, (t_rgb){0, 0, 1}, 1, 0.002, 300, 150, 1),
 		new_light(POINT, (t_vec3){-300, 300, 300}, (t_rgb){1, 0, 0}, 1, 0.002, 300, 150, 1),
-		new_light(DIRECTIONAL, (t_vec3){1, 1, 1}, (t_rgb){1, 0, 0}, 0.2, 0.002, 300, 150, 0)
+		new_light(DIRECTIONAL, (t_vec3){1, 1, 1}, (t_rgb){1, 1, 1}, 0.5, 0.002, 300, 150, 0)
 	};
 	rt.scene.light_nbr = 4;
 	attach_image_to_window(rt.image, rt.window);

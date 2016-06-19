@@ -1,6 +1,6 @@
 # include <rt.h>
 
-t_primitive	new_sphere(t_vec3 position, double radius)
+t_primitive	new_sphere(t_vec3 position, float radius)
 {
 	t_primitive	p;
 
@@ -12,7 +12,7 @@ t_primitive	new_sphere(t_vec3 position, double radius)
 	return(p);
 }
 
-t_primitive	new_cylinder(t_vec3 position, t_vec3 direction, double radius, double size)
+t_primitive	new_cylinder(t_vec3 position, t_vec3 direction, float radius, float size)
 {
 	t_primitive	p;
 
@@ -26,7 +26,7 @@ t_primitive	new_cylinder(t_vec3 position, t_vec3 direction, double radius, doubl
 	return(p);
 }
 
-t_primitive	new_cone(t_vec3 position, t_vec3 direction, double radius, double size)
+t_primitive	new_cone(t_vec3 position, t_vec3 direction, float radius, float size)
 {
 	t_primitive	p;
 
