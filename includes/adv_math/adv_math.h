@@ -65,6 +65,7 @@ t_vec3	vec3_normalize(t_vec3 v);
 t_vec3	vec3_divide(t_vec3, t_vec3 v1);
 t_vec3	vec3_scale(t_vec3 v, float d);
 t_vec3	vec3_fdivide(t_vec3 v, float d);
+t_vec3	vec3_fadd(t_vec3 v, float d);
 t_vec3	vec3_abs(t_vec3 v);
 t_vec3	vec3_negate(t_vec3 v);
 t_vec3	vec3_project(t_vec3 v, t_vec3 v1);

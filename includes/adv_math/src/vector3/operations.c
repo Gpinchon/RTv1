@@ -68,6 +68,15 @@ t_vec3	vec3_fdivide(t_vec3 v, float d)
 	});
 }
 
+t_vec3	vec3_fadd(t_vec3 v, float d)
+{
+	return ((t_vec3){
+		v.x + d,
+		v.y + d,
+		v.z + d
+	});
+}
+
 t_vec3	vec3_abs(t_vec3 v)
 {
 	return ((t_vec3){

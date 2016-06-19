@@ -2,8 +2,8 @@
 # include <mlx_framework.h>
 # include <adv_math.h>
 
-# define	WIDTH		640
-# define	HEIGHT		480
+# define	WIDTH		512
+# define	HEIGHT		512
 # define	BACKGROUND	(t_rgb){127, 127, 127}
 # define	DIFFUSE		oren_nayar_diffuse
 # define	SPECULAR	trowbridge_reitz_specular

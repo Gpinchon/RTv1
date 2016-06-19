@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/17 20:46:53 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/06/18 22:02:18 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/06/19 20:51:38 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,9 +61,10 @@ t_rgb	compute_point_color(t_primitive p, t_camera c, t_light l, double *z)
 	t_vec3		view_dir;
 	t_rgb		color;
 
-	position.x = (c.ray.origin.x + c.ray.direction.x * *z);
-	position.y = (c.ray.origin.y + c.ray.direction.y * *z);
-	position.z = (c.ray.origin.z + c.ray.direction.z * *z);
+	position = (t_vec3){
+		(c.ray.origin.x + c.ray.direction.x * *z),
+		(c.ray.origin.y + c.ray.direction.y * *z),
+		(c.ray.origin.z + c.ray.direction.z * *z)};
 	light_dir = compute_lightdir(l, position);
 	view_dir = vec3_normalize(vec3_substract(c.ray.origin, position));
 	color = compute_illumination(p, l,
@@ -160,18 +161,25 @@ t_camera	update_camera(t_camera gopro, double aspect)
 	t_vec3		v;
 	t_vec3		r;
 	t_vec3		u;
+	float		fov;
 
 	v = vec3_substract(gopro.lookat, gopro.position);
 	r = vec3_normalize(vec3_cross(v, gopro.up));
 	u = vec3_normalize(vec3_cross(r, v));
+	fov = tan(gopro.fov / 2.0) * aspect;
 	v = vec3_substract(v,
-		vec3_add(r = vec3_scale(r, tan(gopro.fov / 2.0) * aspect),
-		u = vec3_scale(u, tan(gopro.fov / 2.0) * aspect)));
+		vec3_add(r = vec3_scale(r, fov),
+		u = vec3_scale(u, fov)));
 	gopro.transform = (t_mat3){.m = {
 		r.x * 2, r.y * 2, r.z * 2,
 		u.x * 2, u.y * 2, u.z * 2,
 		v.x, v.y, v.z
 	}};
+	//gopro.transform = (t_mat3){.m = {
+	//r.x * 2, u.x * 2, v.x,
+	//r.y * 2, u.y * 2, v.y,
+	//r.z * 2, u.z * 2, v.z
+	//}};
 	return (gopro);
 }
 
@@ -181,7 +189,23 @@ t_ray	generate_ray(t_camera gopro, float x, float y)
 
 	ray.origin = gopro.position;
 	ray.direction = vec3_normalize(m3_mult_vec3(gopro.transform,
-					vec3_normalize(new_vec3(x, y, 1))));
+					(new_vec3(x, y, 1))));
+	return (ray);
+}
+
+t_ray	generate_shadow_ray(t_camera c, t_light l, float z)
+{
+	t_ray	ray;
+	t_vec3	pi;
+
+	pi = (t_vec3){
+		(c.ray.origin.x + c.ray.direction.x * z),
+		(c.ray.origin.y + c.ray.direction.y * z),
+		(c.ray.origin.z + c.ray.direction.z * z)};;
+	//ray.direction = vec3_normalize(vec3_substract(ray.origin, l.position));
+	ray.direction = l.type == DIRECTIONAL ? vec3_normalize(l.position) : vec3_normalize(vec3_substract(l.position, pi));
+	//printf("%f, %f, %f\n", ray.origin.x, ray.origin.y, ray.origin.z);
+	ray.origin = vec3_add(pi, vec3_scale(ray.direction, 0.1));
 	return (ray);
 }
 
@@ -194,6 +218,7 @@ void	do_raytracer(t_point2 size, t_rt rt)
 	double		z;
 	int i = 0;
 	int j = 0;
+	int k;
 
 	current.y = 0;
 	while (current.y < size.y)
@@ -205,7 +230,6 @@ void	do_raytracer(t_point2 size, t_rt rt)
 			final_color = (t_rgb){0, 0, 0};
 			current_z = get_current_z(rt.depth, size, current);
 			z = -1;
-
 			while (fcur.y < current.y + 1)
 			{
 				fcur.x = current.x;
@@ -222,17 +246,35 @@ void	do_raytracer(t_point2 size, t_rt rt)
 							j = 0;
 							while (j < rt.scene.light_nbr)
 							{
-								color = j > 0 ? rgb_add(color, compute_point_color(rt.scene.primitive[i], rt.scene.camera, rt.scene.light[j], &z)) :
+								enum e_bool in_shadow = false;
+								k = 0;
+								while (k < rt.scene.primitive_nbr)
+								{
+									t_ray	shadow_ray = generate_shadow_ray(rt.scene.camera, rt.scene.light[j], z);
+									double	fake_z = vec3_distance(rt.scene.light[j].position, shadow_ray.origin);
+									if (rt.scene.primitive[k].intersect(rt.scene.primitive[k], shadow_ray, &fake_z))
+									{
+										in_shadow = true;
+										break ;
+									}
+									k++;
+								}
+								//if (in_shadow)
+								//	printf("%i\n", in_shadow);
+								if (!in_shadow)
+									color = j > 0 ? rgb_add(color, compute_point_color(rt.scene.primitive[i], rt.scene.camera, rt.scene.light[j], &z)) :
 									compute_point_color(rt.scene.primitive[i], rt.scene.camera, rt.scene.light[j], &z);
-								color = (t_rgb){color.r > 1 ? 1 : color.r, color.g > 1 ? 1 : color.g, color.b > 1 ? 1 : color.b};
+								else
+									color = j > 0 ? rgb_add(color, rgba_to_rgb(rt.scene.primitive[i].material.ambient)) : rgba_to_rgb(rt.scene.primitive[i].material.ambient);
+								//color = (t_rgb){color.r > 1 ? 1 : color.r, color.g > 1 ? 1 : color.g, color.b > 1 ? 1 : color.b};
 								j++;
 							}
-							color = (t_rgb){color.r > 1 ? 1 : color.r, color.g > 1 ? 1 : color.g, color.b > 1 ? 1 : color.b};
+							//color = (t_rgb){color.r > 1 ? 1 : color.r, color.g > 1 ? 1 : color.g, color.b > 1 ? 1 : color.b};
 							z = (z + z) / 2.0;
 						}
 						i++;
 					}
-					final_color = rgb_add(final_color, color);
+					final_color = rgb_add(final_color, (t_rgb){color.r > 1 ? 1 : color.r, color.g > 1 ? 1 : color.g, color.b > 1 ? 1 : color.b});
 					fcur.x += 1 / ((float)SUPERSAMPLING);
 				}
 				fcur.y += 1 / ((float)SUPERSAMPLING);
@@ -373,15 +415,26 @@ int main()
 	rt.window = new_window(rt.framework, WIDTH, HEIGHT, "RTv1");
 	rt.image = new_image(rt.framework, WIDTH, HEIGHT, "display");
 	rt.depth = new_depth_buffer((t_point2){1, 1});
-	rt.scene.camera = new_camera((t_vec3){-250, 250, 250}, (t_vec3){0, 0, 0}, (t_vec3){0, 1, 0}, (t_vec2){TO_RADIAN(90), HEIGHT / (double)WIDTH});
-	rt.scene.primitive = (t_primitive[]){new_sphere((t_vec3){0, 0, 0}, 250), new_plane((t_vec3){0, 0, 0}, (t_vec3){0, 1, 0}), new_cylinder((t_vec3){0, 0, 0}, (t_vec3){-1, 1, 0}, 100, 1000)};
+	rt.scene.camera = new_camera((t_vec3){300, 300, 300}, (t_vec3){0, 0, 0}, (t_vec3){0, 1, 0}, (t_vec2){TO_RADIAN(45), HEIGHT / (double)WIDTH});
+	rt.scene.primitive = (t_primitive[]){
+		new_sphere((t_vec3){0, 0, 0}, 250),
+		new_sphere((t_vec3){500, 0, 0}, 250),
+		new_cylinder((t_vec3){0, 0, 0}, (t_vec3){-1, 1, 0}, 100, 1000),
+		new_plane((t_vec3){0, 0, 0}, (t_vec3){0, 1, 0}),
+		new_cone((t_vec3){250, 250, 250}, (t_vec3){0, 1, 0}, 20, 0)};
 	rt.scene.primitive[0].material = new_mtl((t_rgba){0, 0, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){80, 0, 1});
 	rt.scene.primitive[1].material = new_mtl((t_rgba){0, 1, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){30, 0.3, 1});
 	rt.scene.primitive[2].material = new_mtl((t_rgba){0, 0, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){80, 1, 1});
-	rt.scene.primitive_nbr = 3;
-	rt.scene.light = (t_light[]){new_light(POINT, (t_vec3){300, 300, 300}, (t_rgb){1, 1, 1}, 1, 0.002, 300, 150, 1),
-		new_light(POINT, (t_vec3){-300, 300, -300}, (t_rgb){0, 0, 1}, 1, 0.002, 300, 150, 1)};
-	rt.scene.light_nbr = 2;
+	rt.scene.primitive[3].material = new_mtl((t_rgba){0, 1, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){30, 0.3, 1});
+	rt.scene.primitive[4].material = new_mtl((t_rgba){0, 1, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){30, 0.3, 1});
+	rt.scene.primitive_nbr = 5;
+	rt.scene.light = (t_light[]){
+		new_light(POINT, (t_vec3){300, 300, 300}, (t_rgb){1, 1, 1}, 1, 0.002, 300, 150, 1),
+		new_light(POINT, (t_vec3){300, 300, -300}, (t_rgb){0, 0, 1}, 1, 0.002, 300, 150, 1),
+		new_light(POINT, (t_vec3){-300, 300, 300}, (t_rgb){1, 0, 0}, 1, 0.002, 300, 150, 1),
+		new_light(DIRECTIONAL, (t_vec3){1, 1, 1}, (t_rgb){1, 0, 0}, 0.2, 0.002, 300, 150, 0)
+	};
+	rt.scene.light_nbr = 4;
 	attach_image_to_window(rt.image, rt.window);
 	fill_image(rt.image, BACKGROUND);
 	refresh_window(rt.window);
