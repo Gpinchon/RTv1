@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/17 20:46:53 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/06/19 20:51:38 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/06/19 21:55:06 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -205,7 +205,7 @@ t_ray	generate_shadow_ray(t_camera c, t_light l, float z)
 	//ray.direction = vec3_normalize(vec3_substract(ray.origin, l.position));
 	ray.direction = l.type == DIRECTIONAL ? vec3_normalize(l.position) : vec3_normalize(vec3_substract(l.position, pi));
 	//printf("%f, %f, %f\n", ray.origin.x, ray.origin.y, ray.origin.z);
-	ray.origin = vec3_add(pi, vec3_scale(ray.direction, 0.1));
+	ray.origin = vec3_add(pi, vec3_scale(ray.direction, 0.001));
 	return (ray);
 }
 
@@ -417,19 +417,19 @@ int main()
 	rt.depth = new_depth_buffer((t_point2){1, 1});
 	rt.scene.camera = new_camera((t_vec3){300, 300, 300}, (t_vec3){0, 0, 0}, (t_vec3){0, 1, 0}, (t_vec2){TO_RADIAN(45), HEIGHT / (double)WIDTH});
 	rt.scene.primitive = (t_primitive[]){
-		new_sphere((t_vec3){0, 0, 0}, 250),
-		new_sphere((t_vec3){500, 0, 0}, 250),
-		new_cylinder((t_vec3){0, 0, 0}, (t_vec3){-1, 1, 0}, 100, 1000),
+		new_sphere((t_vec3){0, 50, 0}, 100),
+		new_sphere((t_vec3){150, 25, 0}, 50),
 		new_plane((t_vec3){0, 0, 0}, (t_vec3){0, 1, 0}),
-		new_cone((t_vec3){250, 250, 250}, (t_vec3){0, 1, 0}, 20, 0)};
+		new_cylinder((t_vec3){250, 0, 250}, (t_vec3){0, 1, 0}, 10, 100),
+		new_cone((t_vec3){250, 250, 250}, (t_vec3){0, -1, 0}, 20, 200)};
 	rt.scene.primitive[0].material = new_mtl((t_rgba){0, 0, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){80, 0, 1});
-	rt.scene.primitive[1].material = new_mtl((t_rgba){0, 1, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){30, 0.3, 1});
-	rt.scene.primitive[2].material = new_mtl((t_rgba){0, 0, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){80, 1, 1});
-	rt.scene.primitive[3].material = new_mtl((t_rgba){0, 1, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){30, 0.3, 1});
-	rt.scene.primitive[4].material = new_mtl((t_rgba){0, 1, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){30, 0.3, 1});
+	rt.scene.primitive[1].material = new_mtl((t_rgba){0, 1, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){30, 0.5, 1});
+	rt.scene.primitive[2].material = new_mtl((t_rgba){0, 0, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){10, 0.9, 1});
+	rt.scene.primitive[3].material = new_mtl((t_rgba){0.8, 0.2, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){10, 0.3, 1});
+	rt.scene.primitive[4].material = new_mtl((t_rgba){0, 0.8, 0, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){30, 0.3, 1});
 	rt.scene.primitive_nbr = 5;
 	rt.scene.light = (t_light[]){
-		new_light(POINT, (t_vec3){300, 300, 300}, (t_rgb){1, 1, 1}, 1, 0.002, 300, 150, 1),
+		new_light(POINT, (t_vec3){-300, 300, -300}, (t_rgb){1, 1, 1}, 1, 0.002, 300, 150, 1),
 		new_light(POINT, (t_vec3){300, 300, -300}, (t_rgb){0, 0, 1}, 1, 0.002, 300, 150, 1),
 		new_light(POINT, (t_vec3){-300, 300, 300}, (t_rgb){1, 0, 0}, 1, 0.002, 300, 150, 1),
 		new_light(DIRECTIONAL, (t_vec3){1, 1, 1}, (t_rgb){1, 0, 0}, 0.2, 0.002, 300, 150, 0)
