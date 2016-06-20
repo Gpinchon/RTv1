@@ -8,17 +8,18 @@ void	init_errors()
 	i = 0;
 	while (i < MAX_ERROR)
 	{
-		g_errors[i] = "Undefined error\n";
+		g_errors[i] = "Undefined error.";
 		i++;
 	}
-	g_errors[ALL_OK] = "All is ok !\n";
-	g_errors[NULL_WINDOW_POINTER] = "Null window pointer\n";
-	g_errors[NULL_IMAGE_POINTER] = "Null image pointer\n";
-	g_errors[NULL_FRAMEWORK_POINTER] = "Null framework pointer\n";
-	g_errors[NULL_MLX_POINTER] = "Null minilibx pointer\n";
-	g_errors[MALLOC_ERROR] = "Malloc Error\n";
-	g_errors[WRONG_IMAGE_COORD] = "Wrong image coordinates\n";
-	g_errors[NO_WINDOWS] = "No windows found\n";
+	g_errors[ALL_OK] = "All is ok !";
+	g_errors[NULL_WINDOW_POINTER] = "Null window pointer.";
+	g_errors[NULL_IMAGE_POINTER] = "Null image pointer.";
+	g_errors[NULL_FRAMEWORK_POINTER] = "Null framework pointer.";
+	g_errors[NULL_MLX_POINTER] = "Null minilibx pointer.";
+	g_errors[MALLOC_ERROR] = "Malloc Error.";
+	g_errors[WRONG_IMAGE_COORD] = "Wrong image coordinates.";
+	g_errors[NO_WINDOWS] = "No windows found.";
+	g_errors[INVALID_KEYCODE] = "Invalid keycode.";
 }
 
 void	print_error(int error_code)

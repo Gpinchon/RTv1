@@ -87,5 +87,7 @@ void	*new_window(t_framework *framework, int width, int height, char *name)
 	win->mlx_window = mlx_new_window(framework->mlx_ptr, width, height, name);
 	win->mlx_ptr = framework->mlx_ptr;
 	win->size = (t_point2){width, height};
+	init_key_table(win->key, MAX_KEYS);
+	keypress_callback(win, handle_keypress, win);
 	return (add_window(framework, clear_window(win)));
 }

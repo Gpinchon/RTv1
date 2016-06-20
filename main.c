@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/17 20:46:53 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/06/20 00:03:38 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/06/20 20:33:15 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,8 +18,8 @@ float		*get_current_z(t_depth_buffer *depth,
 	t_point2 screen_size, t_point2 current)
 {
 	return (&depth->buffer
-		[(int)floor(depth->size.x / (float)screen_size.x * current.x)]
-		[(int)floor(depth->size.y / (float)screen_size.y * current.y)]);
+		[(int)floor(depth->size.x / screen_size.x * current.x)]
+		[(int)floor(depth->size.y / screen_size.y * current.y)]);
 }
 
 t_rgb	compute_illumination(t_primitive p, t_light l, t_vec3 data[4])
@@ -207,16 +207,74 @@ t_ray	generate_shadow_ray(t_camera c, t_light l, float z)
 	return (ray);
 }
 
+enum e_bool	in_shadow(t_rt rt, t_light l, double z)
+{
+	int k;
+
+	k = 0;
+	while (k < rt.scene.primitive_nbr)
+	{
+		t_ray	shadow_ray = generate_shadow_ray(rt.scene.camera, l, z);
+		float	fake_z = vec3_distance(l.position, shadow_ray.origin);
+		if (rt.scene.primitive[k].intersect(rt.scene.primitive[k], shadow_ray, &fake_z))
+			return (true);
+		k++;
+	}
+	return (false);
+}
+
+t_rgb	iterate_through_pixel(t_point2 size, t_rt rt, t_point2 current)
+{
+	t_vec2		fcur;
+	t_rgb		final_color;
+	float		z;
+	float		*current_z;
+	t_point2	obj;
+
+	fcur.y = current.y;
+	final_color = (t_rgb){0, 0, 0};
+	current_z = get_current_z(rt.depth, size, current);
+	while (fcur.y < current.y + 1)
+	{
+		fcur.x = current.x;
+		while (fcur.x < current.x + 1)
+		{
+			obj.x = 0;
+			rt.scene.camera.ray = generate_ray(rt.scene.camera, (size.x - 2 * fcur.x), (size.y - 2 * fcur.y));
+			t_rgb color = rgb_divide(BACKGROUND, 255);
+			z = -1;
+			while (obj.x < rt.scene.primitive_nbr)
+			{
+				if (rt.scene.primitive[obj.x].intersect(rt.scene.primitive[obj.x], rt.scene.camera.ray, &z))
+				{
+					obj.y = 0;
+					while (obj.y < rt.scene.light_nbr)
+					{
+						if (!in_shadow(rt, rt.scene.light[obj.y], z))
+							color = obj.y > 0 ? rgb_add(color, compute_point_color(rt.scene.primitive[obj.x], rt.scene.camera, rt.scene.light[obj.y], &z)) :
+							compute_point_color(rt.scene.primitive[obj.x], rt.scene.camera, rt.scene.light[obj.y], &z);
+						else
+							color = obj.y > 0 ? rgb_add(color, rgba_to_rgb(rt.scene.primitive[obj.x].material.ambient)) : rgba_to_rgb(rt.scene.primitive[obj.x].material.ambient);
+						obj.y++;
+					}
+					z = (z + z) * 0.5;
+				}
+				obj.x++;
+			}
+			final_color = rgb_add(final_color, (t_rgb){color.r > 1 ? 1 : color.r, color.g > 1 ? 1 : color.g, color.b > 1 ? 1 : color.b});
+			fcur.x += 1 / ((float)SUPERSAMPLING);
+		}
+		fcur.y += 1 / ((float)SUPERSAMPLING);
+	}
+	*(current_z) = z != -1 ? z : *(current_z);
+	return (final_color);
+}
+
 void	do_raytracer(t_point2 size, t_rt rt)
 {
 	t_point2	current;
 	t_rgb		final_color;
-	t_vec2		fcur;
-	float		*current_z;
-	float		z;
-	int i = 0;
-	int j = 0;
-	int k;
+	
 
 	current.y = 0;
 	while (current.y < size.y)
@@ -224,57 +282,7 @@ void	do_raytracer(t_point2 size, t_rt rt)
 		current.x = 0;
 		while (current.x < size.x)
 		{
-			fcur.y = current.y;
-			final_color = (t_rgb){0, 0, 0};
-			current_z = get_current_z(rt.depth, size, current);
-			z = -1;
-			while (fcur.y < current.y + 1)
-			{
-				fcur.x = current.x;
-				while (fcur.x < current.x + 1)
-				{
-					i = 0;
-					rt.scene.camera.ray = generate_ray(rt.scene.camera, (size.x - 2 * fcur.x), (size.y - 2 * fcur.y));
-					t_rgb color = rgb_divide(BACKGROUND, 255);
-					z = -1;
-					while (i < rt.scene.primitive_nbr)
-					{
-						if (rt.scene.primitive[i].intersect(rt.scene.primitive[i], rt.scene.camera.ray, &z))
-						{
-							j = 0;
-							while (j < rt.scene.light_nbr)
-							{
-								enum e_bool in_shadow = false;
-								k = 0;
-								while (k < rt.scene.primitive_nbr)
-								{
-									t_ray	shadow_ray = generate_shadow_ray(rt.scene.camera, rt.scene.light[j], z);
-									float	fake_z = vec3_distance(rt.scene.light[j].position, shadow_ray.origin);
-									if (rt.scene.primitive[k].intersect(rt.scene.primitive[k], shadow_ray, &fake_z))
-									{
-										in_shadow = true;
-										break ;
-									}
-									k++;
-								}
-								if (!in_shadow)
-									color = j > 0 ? rgb_add(color, compute_point_color(rt.scene.primitive[i], rt.scene.camera, rt.scene.light[j], &z)) :
-									compute_point_color(rt.scene.primitive[i], rt.scene.camera, rt.scene.light[j], &z);
-								else
-									color = j > 0 ? rgb_add(color, rgba_to_rgb(rt.scene.primitive[i].material.ambient)) : rgba_to_rgb(rt.scene.primitive[i].material.ambient);
-								j++;
-							}
-							z = (z + z) * 0.5;
-						}
-						i++;
-					}
-					final_color = rgb_add(final_color, (t_rgb){color.r > 1 ? 1 : color.r, color.g > 1 ? 1 : color.g, color.b > 1 ? 1 : color.b});
-					fcur.x += 1 / ((float)SUPERSAMPLING);
-				}
-				fcur.y += 1 / ((float)SUPERSAMPLING);
-			}
-			if (z != -1)
-				*(current_z) = z;
+			final_color = iterate_through_pixel(size, rt, current);
 			final_color = rgb_divide(final_color, (SUPERSAMPLING) * (SUPERSAMPLING));
 			final_color = rgb_scale(final_color, 255);
 			put_rgb_to_image(rt.image, current, final_color);
@@ -320,53 +328,35 @@ void		*destroy_depth_buffer(t_depth_buffer *d)
 	return (NULL);
 }
 
-int	check_key(int key, t_rt *rt)
+void	exit_rt(int key, t_rt *rt)
 {
-	//printf("%i\n", key);
-	if (key == 53 || key == 65307)
-	{
-		destroy_framework(rt->framework);
-		destroy_depth_buffer(rt->depth);
-		exit(0);
-	}
-	else if (key == 65362)
-	{
-		rt->scene.camera.position.x += 50;
-		rt->scene.camera = update_camera(rt->scene.camera, HEIGHT / (float)WIDTH);
-		do_raytracer((t_point2){WIDTH, HEIGHT}, *rt);
-	}
-	else if (key == 65364)
-	{
-		rt->scene.camera.position.x -= 50;
-		rt->scene.camera = update_camera(rt->scene.camera, HEIGHT / (float)WIDTH);
-		do_raytracer((t_point2){WIDTH, HEIGHT}, *rt);
-	}
-	else if (key == 65361)
-	{
-		rt->scene.camera.position.z += 50;
-		rt->scene.camera = update_camera(rt->scene.camera, HEIGHT / (float)WIDTH);
-		do_raytracer((t_point2){WIDTH, HEIGHT}, *rt);
-	}
-	else if (key == 65363)
-	{
-		rt->scene.camera.position.z -= 50;
-		rt->scene.camera = update_camera(rt->scene.camera, HEIGHT / (float)WIDTH);
-		do_raytracer((t_point2){WIDTH, HEIGHT}, *rt);
-	}
-	else if (key == 65451)
-	{
-		rt->scene.camera.position.y += 50;
-		rt->scene.camera = update_camera(rt->scene.camera, HEIGHT / (float)WIDTH);
-		do_raytracer((t_point2){WIDTH, HEIGHT}, *rt);
-	}
-	else if (key == 65453)
-	{
-		rt->scene.camera.position.y -= 50;
-		rt->scene.camera = update_camera(rt->scene.camera, HEIGHT / (float)WIDTH);
-		do_raytracer((t_point2){WIDTH, HEIGHT}, *rt);
-	}
+	destroy_framework(rt->framework);
+	destroy_depth_buffer(rt->depth);
+	exit(key);
+}
+
+void	move_along_x(int key, t_rt *rt)
+{
+	rt->scene.camera.position.x += key == LEFTARROW ? 50 : -50;
+	rt->scene.camera = update_camera(rt->scene.camera, HEIGHT / (float)WIDTH);
+	do_raytracer((t_point2){WIDTH, HEIGHT}, *rt);
 	refresh_window(rt->window);
-	return(0);
+}
+
+void	move_along_y(int key, t_rt *rt)
+{
+	rt->scene.camera.position.y += key == KEYPADPLUS ? 50 : -50;
+	rt->scene.camera = update_camera(rt->scene.camera, HEIGHT / (float)WIDTH);
+	do_raytracer((t_point2){WIDTH, HEIGHT}, *rt);
+	refresh_window(rt->window);
+}
+
+void	move_along_z(int key, t_rt *rt)
+{
+	rt->scene.camera.position.z += key == UPARROW ? 50 : -50;
+	rt->scene.camera = update_camera(rt->scene.camera, HEIGHT / (float)WIDTH);
+	do_raytracer((t_point2){WIDTH, HEIGHT}, *rt);
+	refresh_window(rt->window);
 }
 
 /*
@@ -387,12 +377,13 @@ t_mtl	new_mtl(t_rgba diffuse, t_rgba ambient, t_rgba specular, t_vec3 factors)
 	return (material);
 }
 
-t_light	new_light(int type, t_vec3 position, t_rgb color, float power, float attenuation, float falloff, float spot_size, float specular)
+t_light	new_light(int type, t_vec3 position, t_vec3 direction, t_rgb color, float power, float attenuation, float falloff, float spot_size, float specular)
 {
 	t_light	light;
 
 	light.type = type;
 	light.position = position;
+	light.direction = direction;
 	light.color = color;
 	light.power = power;
 	light.attenuation = attenuation;
@@ -405,7 +396,7 @@ t_light	new_light(int type, t_vec3 position, t_rgb color, float power, float att
 int main()
 {
 	t_rt	rt;
-	rt.framework = init_mlx_framework();
+	rt.framework = init_framework();
 	rt.window = new_window(rt.framework, WIDTH, HEIGHT, "RTv1");
 	rt.image = new_image(rt.framework, WIDTH, HEIGHT, "display");
 	rt.depth = new_depth_buffer((t_point2){512, 512});
@@ -413,29 +404,36 @@ int main()
 	rt.scene.primitive = (t_primitive[]){
 		new_sphere((t_vec3){0, 125, 0}, 125),
 		new_sphere((t_vec3){150, 50, 0}, 50),
-		new_plane((t_vec3){0, 0, 0}, (t_vec3){0, 1, 0}),
 		new_cylinder((t_vec3){250, 0, 250}, (t_vec3){0, 1, 0}, 10, 100),
-		new_cone((t_vec3){250, 250, 250}, (t_vec3){0, -1, 0}, 20, 200)};
+		new_cone((t_vec3){250, 250, 250}, (t_vec3){0, -1, 0}, 20, 200),
+		new_plane((t_vec3){0, 0, 0}, (t_vec3){0, 1, 0})};
 	rt.scene.primitive[0].material = new_mtl((t_rgba){0, 0, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){80, 0, 1});
-	rt.scene.primitive[1].material = new_mtl((t_rgba){0, 1, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){30, 0.5, 1});
-	rt.scene.primitive[2].material = new_mtl((t_rgba){0, 0, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){10, 0.9, 1});
-	rt.scene.primitive[3].material = new_mtl((t_rgba){0.8, 0.2, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){10, 0.3, 1});
-	rt.scene.primitive[4].material = new_mtl((t_rgba){0, 0.8, 0, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){30, 0.3, 1});
+	rt.scene.primitive[1].material = new_mtl((t_rgba){0, 1, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){30, 1, 1});
+	rt.scene.primitive[4].material = new_mtl((t_rgba){0, 0, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){10, 0.9, 1});
+	rt.scene.primitive[2].material = new_mtl((t_rgba){0.8, 0.2, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){10, 0.3, 1});
+	rt.scene.primitive[3].material = new_mtl((t_rgba){0, 0.8, 0, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){30, 0.3, 1});
+	//rt.scene.primitive = (t_primitive[]){new_cone((t_vec3){0, 0, 0}, (t_vec3){0, -1, 0}, 20, 200)};
+	//rt.scene.primitive[0].material = new_mtl((t_rgba){0, 0, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){80, 0, 1});
 	rt.scene.primitive_nbr = 5;
 	rt.scene.light = (t_light[]){
-		new_light(POINT, (t_vec3){-300, 300, -300}, (t_rgb){1, 1, 1}, 1, 0.002, 300, 150, 1),
-		new_light(POINT, (t_vec3){300, 300, -300}, (t_rgb){0, 0, 1}, 1, 0.002, 300, 150, 1),
-		new_light(POINT, (t_vec3){-300, 300, 300}, (t_rgb){1, 0, 0}, 1, 0.002, 300, 150, 1),
-		new_light(DIRECTIONAL, (t_vec3){1, 1, 1}, (t_rgb){1, 1, 1}, 0.5, 0.002, 300, 150, 0)
+		new_light(SPOT, (t_vec3){150, 500, 150}, (t_vec3){0, -1, 0}, (t_rgb){1, 1, 1}, 1, 0.002, 300, 90, 1),
+		new_light(POINT, (t_vec3){300, 300, -300}, (t_vec3){0, 0, 0}, (t_rgb){0, 0, 1}, 1, 0.002, 300, 150, 1),
+		new_light(POINT, (t_vec3){-300, 300, 300}, (t_vec3){0, 0, 0}, (t_rgb){1, 0, 0}, 1, 0.002, 300, 150, 1),
+		new_light(DIRECTIONAL, (t_vec3){1, 1, 1}, (t_vec3){0, 0, 0}, (t_rgb){1, 1, 1}, 0.5, 0.002, 300, 150, 0)
 	};
-	rt.scene.light_nbr = 4;
+	rt.scene.light_nbr = 1;
 	attach_image_to_window(rt.image, rt.window);
 	fill_image(rt.image, BACKGROUND);
 	refresh_window(rt.window);
-	key_callback(rt.window, check_key, &rt);
+	setup_keypress(rt.window, ESCAPE, exit_rt, &rt);
+	setup_keypress(rt.window, LEFTARROW, move_along_x, &rt);
+	setup_keypress(rt.window, RIGHTARROW, move_along_x, &rt);
+	setup_keypress(rt.window, KEYPADPLUS, move_along_y, &rt);
+	setup_keypress(rt.window, KEYPADMINUS, move_along_y, &rt);
+	setup_keypress(rt.window, UPARROW, move_along_z, &rt);
+	setup_keypress(rt.window, DOWNARROW, move_along_z, &rt);
 	loop_callback(rt.framework, refresh_window, rt.window);
 	do_raytracer((t_point2){WIDTH, HEIGHT}, rt);
-	//rt.depth = destroy_depth_buffer(rt.depth);
 	init_loop(rt.framework);
 	return (0);
 }

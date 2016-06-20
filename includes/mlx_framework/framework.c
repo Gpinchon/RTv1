@@ -7,15 +7,15 @@ void	init_loop(t_framework *framework)
 	mlx_loop(framework->mlx_ptr);
 }
 
-void	*init_mlx_framework()
+void	*init_framework()
 {
 	t_framework	*framework;
 
 	init_errors();
 	framework = ft_memalloc(sizeof(t_framework));
-	FRAMEWORK_DEBUG(!framework, MALLOC_ERROR, "In init_mlx_framework\n");
+	FRAMEWORK_DEBUG(!framework, MALLOC_ERROR, "In init_framework\n");
 	framework->mlx_ptr = mlx_init();
-	FRAMEWORK_DEBUG(!framework->mlx_ptr, NULL_MLX_POINTER, "In init_mlx_framework\n");
+	FRAMEWORK_DEBUG(!framework->mlx_ptr, NULL_MLX_POINTER, "In init_framework\n");
 	return (framework);
 }
 

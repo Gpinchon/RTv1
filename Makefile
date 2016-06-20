@@ -20,7 +20,7 @@ MLX_LIBS = -lmlx -lXext -lX11
 endif
 
 LIBS	= -L ./includes/ -L $(BASE_DIR) -L $(BASE_DIR)libft/ -L ./includes/adv_math/ -L $(MLX_PATH) -lm -ladv_math -lmlx_framework -lft $(MLX_LIBS)
-CFLAGS	= -g -Wall -Wextra -Werror -I ./includes/ -I $(BASE_DIR) -I $(BASE_DIR)libft/ -I ./includes/adv_math/ -I $(MLX_PATH)
+CFLAGS	= -Ofast -Wall -Wextra -Werror -I ./includes/ -I $(BASE_DIR) -I $(BASE_DIR)libft/ -I ./includes/adv_math/ -I $(MLX_PATH)
 
 all: $(NAME)
 

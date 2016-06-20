@@ -5,6 +5,7 @@
 # define TO_DEGREE(x)	((int)(180.0f * x / M_PI) % 360)
 # define TO_RADIAN(x)	(x / 180.0f * M_PI)
 # include <math.h>
+# include <float.h>
 
 # pragma pack (1)
 

@@ -6,12 +6,13 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/09 18:24:26 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/06/10 16:52:33 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/06/20 17:14:38 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef MLX_FRAMEWORK_H
 # define MLX_FRAMEWORK_H
+# include "./keys.h"
 # define UCHAR unsigned char
 # define GSTRUCT				struct s_generic
 
@@ -28,6 +29,7 @@
 # define WRONG_IMAGE_COORD		0x6
 # define NO_WINDOWS				0x7
 # define NULL_OBJECT_POINTER	0x8
+# define INVALID_KEYCODE		0x9
 
 char	*g_errors[MAX_ERROR];
 
@@ -83,6 +85,12 @@ typedef struct	s_img
 	int			endian;
 }				t_img;
 
+typedef struct	s_key
+{
+	void		(*callback)();
+	void		*arg;
+}				t_key;
+
 typedef struct	s_window
 {
 	void		*next;
@@ -91,6 +99,7 @@ typedef struct	s_window
 	void		*mlx_ptr;
 	void		*mlx_window;
 	void		*attached_image;
+	t_key		key[MAX_KEYS];
 	t_point2	size;
 }				t_window;
 
@@ -135,7 +144,7 @@ void			*append_object(t_generic *new_object, t_generic *from_object);
 ** Framework tools
 */
 void			init_loop(t_framework *framework);
-void			*init_mlx_framework();
+void			*init_framework();
 void			destroy_framework(t_framework *framework);
 void			*get_mlx_ptr(t_framework *framework);
 /*
@@ -149,7 +158,7 @@ void			print_error(int error_code);
 void			loop_callback(t_framework *framework, int (*fun)(), void *arg);
 void			expose_callback(t_window *window, int (*fun)(), void *arg);
 void			mouse_callback(t_window *window, int (*fun)(), void *arg);
-void			key_callback(t_window *window, int (*fun)(), void *arg);
+void			setup_keypress(t_window *window, int keycode, void (*keyfun)(), void *arg);
 /*
 ** Color tools
 */

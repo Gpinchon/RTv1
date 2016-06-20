@@ -5,6 +5,7 @@ t_primitive	new_sphere(t_vec3 position, float radius)
 	t_primitive	p;
 
 	p.radius = radius;
+	p.radius2 = p.radius * p.radius;
 	p.position = position;
 	p.intersect = intersect_sphere;
 	p.normal = sphere_normal;
@@ -17,6 +18,7 @@ t_primitive	new_cylinder(t_vec3 position, t_vec3 direction, float radius, float 
 	t_primitive	p;
 
 	p.radius = radius;
+	p.radius2 = p.radius * p.radius;
 	p.size = size;
 	p.position = position;
 	p.direction = direction;
@@ -31,6 +33,7 @@ t_primitive	new_cone(t_vec3 position, t_vec3 direction, float radius, float size
 	t_primitive	p;
 
 	p.radius = TO_RADIAN(radius);
+	p.radius2 = p.radius * p.radius;
 	p.size = size;
 	p.position = position;
 	p.direction = direction;

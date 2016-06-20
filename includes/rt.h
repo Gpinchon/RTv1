@@ -1,6 +1,7 @@
 # include <libft.h>
 # include <mlx_framework.h>
 # include <adv_math.h>
+# include <keys.h>
 
 # define	WIDTH		512
 # define	HEIGHT		512
@@ -37,6 +38,7 @@ typedef	struct	s_primitive
 	t_vec3		position;
 	t_vec3		direction;
 	float		radius;
+	float		radius2;
 	float		size;
 	enum e_bool	(*intersect)();
 	t_vec3		(*normal)();

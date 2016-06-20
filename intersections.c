@@ -7,37 +7,20 @@ enum e_bool	test_intersect(float t[2], float *current_z)
 	enum e_bool	retvalue;
 
 	retvalue = false;
-	//printf("%f, %f\n", t[0], t[1]);
 	if ((t[0] > DOUBLE_ZERO)
-	&& (t[0] < *(current_z) || *current_z == -1 || float_equal(*(current_z), t[0])))
+	&& (t[0] <= *(current_z) || *current_z == -1))
 	{
 		*(current_z) = t[0];
 		retvalue = true;
 	}
 	if (!float_equal(t[0], t[1])
 	&& (t[1] > DOUBLE_ZERO) 
-	&& (t[1] < *(current_z) || *current_z == -1 || float_equal(*(current_z), t[1])))
+	&& (t[1] <= *(current_z) || *current_z == -1))
 	{
 		*(current_z) = t[1];
 		retvalue = true;
 	}
 	return (retvalue);
-}
-
-enum e_bool	intersect_sphere(t_primitive s, t_ray r, float *current_z)
-{
-	t_vec3 eye = vec3_substract(r.origin, s.position);
-	float a = vec3_dot(r.direction, r.direction);
-	float b = vec3_dot(eye, r.direction) * 2.0;
-	float c = vec3_dot(eye, eye) - (s.radius * s.radius);
-	float	t[2];
-	float delta;
-	delta = sqrt((b * b) - (4.0 * a * c));
-	if (delta <= 0)
-		return (false);
-	t[0] = (-b - delta) / (2.0 * a);
-	t[1] = (-b + delta) / (2.0 * a);
-	return (test_intersect(t, current_z));
 }
 
 void	float_swap(float *a, float *b)
@@ -49,22 +32,34 @@ void	float_swap(float *a, float *b)
 	*b = tmp;
 }
 
-enum e_bool Quadratic(float A, float B, float C, float *t0, float *t1)
+enum e_bool solve_quadratic(float a, float b, float c, float *t)
 {
-	float discrim = B * B - 4.f * A * C;
+	float	discrim;
+	float	q;
+
+	discrim = b * b - 4.f * a * c;
 	if (discrim <= DOUBLE_ZERO)
-		return false;
-	float rootDiscrim = sqrtf(discrim);
-	float q;
-	if (B < 0)
-		q = -.5f * (B - rootDiscrim);
+		return (false);
+	discrim = sqrtf(discrim);
+	if (b < 0)
+		q = -.5f * (b - discrim);
 	else
-		q = -.5f * (B + rootDiscrim);
-	*t0 = q / A;
-	*t1 = C / q;
-	if (*t0 > *t1)
-		float_swap(t0, t1);
-	return true;
+		q = -.5f * (b + discrim);
+	t[0] = q / a;
+	t[1] = c / q;
+	if (t[0] > t[1])
+		float_swap(&t[0], &t[1]);
+	return (true);
+}
+
+enum e_bool	intersect_sphere(t_primitive s, t_ray r, float *current_z)
+{
+	t_vec3 eye = vec3_substract(r.origin, s.position);
+	float	a = vec3_dot(r.direction, r.direction);
+	float	b = vec3_dot(eye, r.direction) * 2.0;
+	float	c = vec3_dot(eye, eye) - (s.radius2);
+	float	t[2];
+	return (solve_quadratic(a, b, c, t) && test_intersect(t, current_z));
 }
 
 //c.position = cylinder center
@@ -81,12 +76,13 @@ enum e_bool	intersect_inf_cylinder(t_primitive cp, t_ray r, float *current_z)
 	t_vec3 eye = vec3_substract(Pperp, Cperp);
 	float a = vec3_dot(Dperp, Dperp);
 	float b = vec3_dot(eye, Dperp) * 2.0;
-	float c = vec3_dot(eye, eye) - (cp.radius * cp.radius);
+	float c = vec3_dot(eye, eye) - (cp.radius2);
 	float	t[2];
 	float delta;
-	delta = sqrt((b * b) - (4.0 * a * c));
+	delta = (b * b) - (4.0 * a * c);
 	if (delta <= 0)
 		return (false);
+	delta = sqrt(delta);
 	t[0] = (-b - delta) / (2.0 * a);
 	t[1] = (-b + delta) / (2.0 * a);
 	return (test_intersect(t, current_z));
@@ -103,17 +99,20 @@ enum e_bool	intersect_cylinder(t_primitive cp, t_ray r, float *current_z)
 	t_vec3 eye = vec3_substract(Pperp, Cperp);
 	float a = vec3_dot(Dperp, Dperp);
 	float b = vec3_dot(eye, Dperp) * 2.0;
-	float c = vec3_dot(eye, eye) - (cp.radius * cp.radius);
+	float c = vec3_dot(eye, eye) - (cp.radius2);
 	float	t[2];
 	float delta;
-	delta = sqrt((b * b) - (4.0 * a * c));
+	delta = (b * b) - (4.0 * a * c);
 	if (delta <= 0)
 		return (false);
+	delta = sqrt(delta);
 	t[0] = (-b - delta) / (2.0 * a);
 	t[1] = (-b + delta) / (2.0 * a);
-	if (cp.size > 0 && vec3_length(vec3_substract(vec3_add(Ppar, vec3_scale(Dpar, t[0])), Cpar)) >= cp.size / 2)
+	if (cp.size > 0
+		&& vec3_length(vec3_substract(vec3_add(Ppar, vec3_scale(Dpar, t[0])), Cpar)) >= cp.size / 2)
 		t[0] = 0;
-	if (cp.size > 0 && vec3_length(vec3_substract(vec3_add(Ppar, vec3_scale(Dpar, t[1])), Cpar)) >= cp.size / 2)
+	if (cp.size > 0
+		&& vec3_length(vec3_substract(vec3_add(Ppar, vec3_scale(Dpar, t[1])), Cpar)) >= cp.size / 2)
 		t[1] = 0;
 	return (test_intersect(t, current_z));
 }
@@ -174,61 +173,158 @@ enum e_bool	intersect_cylinder(t_primitive cp, t_ray r, float *current_z)
 //	return (test_intersect(t, current_z));
 //}
 
+//enum e_bool	intersect_cone(t_primitive cp, t_ray r, float *current_z)
+//{
+//	float	a;
+//	float	b;
+//	float	c;
+//	float	tmp;
+//	t_vec3	eye;
+//	float	tmp_z;
+//
+//	eye = vec3_substract(r.origin, cp.position);
+//	tmp = (1 + cp.radius2);
+//	a = vec3_dot(r.direction, r.direction);
+//	a = a - (tmp * pow(vec3_dot(r.direction, cp.direction), 2));
+//	b = vec3_dot(r.direction, cp.direction) * vec3_dot(eye, cp.direction);
+//	b = 2 * (vec3_dot(r.direction, eye) - b * tmp);
+//	c = vec3_dot(eye, eye);
+//	c -= tmp * pow(vec3_dot(eye, cp.direction), 2);
+//	float	t[2];
+//	tmp_z = *(current_z);
+//	if (solve_quadratic(a, b, c, t) && (test_intersect(t, &tmp_z)))
+//	{
+//		eye = vec3_substract(vec3_add(r.origin, vec3_scale(r.direction, *current_z)), cp.position);
+//		if (cp.size == 0)// || cp.direction.x > 0)
+//		{
+//			*(current_z) = tmp_z;
+//			return (true);
+//		}
+//		else if (cp.size > 0.
+//			&& vec3_dot(cp.direction, eye) > 0.
+//			&& (cp.size / cos(atan(cp.radius)) > vec3_length(eye)))
+//		{
+//			*(current_z) = tmp_z;
+//			return (true);
+//		}
+//	}
+//	return (false);
+//}
+
+//enum e_bool	intersect_cone(t_primitive cp, t_ray r, float *current_z)
+//{
+//	float	a;
+//	float	b;
+//	float	c;
+//	float	tmp;
+//	t_vec3	eye;
+//
+//	eye = vec3_substract(r.origin, cp.position);
+//	tmp = (1 + cp.radius * cp.radius);
+//	a = vec3_dot(r.direction, r.direction);
+//	a = a - (tmp * pow(vec3_dot(r.direction, cp.direction), 2));
+//	b = vec3_dot(r.direction, cp.direction) * vec3_dot(eye, cp.direction);
+//	b = 2 * (vec3_dot(r.direction, eye) - b * tmp);
+//	c = vec3_dot(eye, eye);
+//	c -= tmp * pow(vec3_dot(eye, cp.direction), 2);
+//	float	t[2];
+//	float	delta;
+//	delta = (b * b) - (4.0 * a * c);
+//	if (delta <= 0)
+//		return (false);
+//	delta = sqrt(delta);
+//	t[0] = (-b - delta) / (2.0 * a);
+//	t[1] = (-b + delta) / (2.0 * a);
+//	if (test_intersect(t, current_z))
+//	{
+//		eye = vec3_substract(vec3_add(r.origin, vec3_scale(r.direction, *current_z)), cp.position);
+//		if (cp.size == 0)// || cp.direction.x > 0)
+//		{
+//			return (true);
+//		}
+//		else if (cp.size > 0.
+//			&& vec3_dot(cp.direction, eye) > 0.
+//			&& (cp.size / cos(atan(cp.radius)) > vec3_length(eye)))
+//		{
+//			return (true);
+//		}
+//	}
+//	return (false);
+//}
+
 enum e_bool	intersect_cone(t_primitive cp, t_ray r, float *current_z)
 {
 	float	a;
 	float	b;
 	float	c;
-	float	tmp;
 	t_vec3	eye;
+	float	t[2], tmp_z;
+	t_vec3	tmp1, tmp2;
 
 	eye = vec3_substract(r.origin, cp.position);
-	tmp = (1 + cp.radius * cp.radius);
-	a = vec3_dot(r.direction, r.direction);
-	a = a - (tmp * pow(vec3_dot(r.direction, cp.direction), 2));
-	b = vec3_dot(r.direction, cp.direction) * vec3_dot(eye, cp.direction);
-	b = 2 * (vec3_dot(r.direction, eye) - b * tmp);
-	c = vec3_dot(eye, eye);
-	c -= tmp * pow(vec3_dot(eye, cp.direction), 2);
-	float	t[2];
-	float	delta;
-	delta = sqrt((b * b) - (4.0 * a * c));
-	if (delta <= 0)
-		return (false);
-	t[0] = (-b - delta) / (2.0 * a);
-	t[1] = (-b + delta) / (2.0 * a);
-	if (test_intersect(t, current_z))
+	tmp1 = vec3_substract(r.direction, vec3_scale(cp.direction, vec3_dot(r.direction, cp.direction)));
+	tmp2 = vec3_substract(eye, vec3_scale(cp.direction, vec3_dot(eye, cp.direction)));
+	a = pow(cos(cp.radius), 2) * vec3_dot(tmp1, tmp1) -
+			pow(sin(cp.radius), 2) * pow(vec3_dot(r.direction, cp.direction), 2);
+	b = 2 * (pow(cos(cp.radius), 2) * vec3_dot(tmp1, tmp2)) -
+		2 * (pow(sin(cp.radius), 2) * vec3_dot(r.direction, cp.direction) * vec3_dot(eye, cp.direction));
+	c = pow(cos(cp.radius), 2) * vec3_dot(tmp2, tmp2) - pow(sin(cp.radius), 2) *
+			pow(vec3_dot(eye, cp.direction), 2);
+	tmp_z = *(current_z);
+	if (solve_quadratic(a, b, c, t) && (test_intersect(t, &tmp_z)))
 	{
-		eye = vec3_substract(vec3_add(r.origin, vec3_scale(r.direction, *current_z)), cp.position);
+		//if (!test_intersect(t, &tmp_z))
+		//	return (false);
+		eye = vec3_substract(vec3_add(r.origin, vec3_scale(r.direction, tmp_z)), cp.position);
 		if (cp.size == 0)// || cp.direction.x > 0)
+		{
+			*(current_z) = tmp_z;
 			return (true);
+		}
 		else if (cp.size > 0.
-			&& vec3_dot(cp.direction, eye) > 0.
-			&& (cp.size / cos(atan(cp.radius)) > vec3_length(eye)))
-			return (true);
+			&& vec3_dot(cp.direction, eye) > 0.)
+			if ((cp.size / cos(atan(cp.radius)) > vec3_length(eye)))
+			{
+				*(current_z) = tmp_z;
+				return (true);
+			}
 	}
 	return (false);
 }
 
 enum e_bool	intersect_plane(t_primitive cp, t_ray r, float *current_z)
 {
-	float	m;
-	float	t;
-	float	d;
-	t_vec3	eye;
-
-	eye = vec3_substract(r.origin, cp.position);
-	m = vec3_dot(cp.direction, eye);
-	if (m < 0)
-		return (false);
-	d = vec3_dot(cp.direction, r.direction);
-	t = -m / d;
-	if (t <= 0)
-		return (false);
-	if (t < *(current_z) || *(current_z) == -1)
-	{
-		*current_z = t;
-		return (true);
+	t_vec3	normal = vec3_negate(cp.direction);
+	float denom = vec3_dot(normal, r.direction); 
+	if (denom > 1e-6)
+	{ 
+		t_vec3 p0l0 = vec3_substract(cp.position, r.origin); 
+		float t = vec3_dot(p0l0, normal) / denom; 
+		if (t >= 0
+		&& (t <= *(current_z) || *(current_z) == -1))
+		{
+			*current_z = t;
+			return (true);
+		}
 	}
-	return (false);
+	return false; 
+	//float	m;
+	//float	t;
+	//float	d;
+	//t_vec3	eye;
+//
+	//eye = vec3_substract(r.origin, cp.position);
+	//m = vec3_dot(cp.direction, eye);
+	//if (m < 0)
+	//	return (false);
+	//d = vec3_dot(cp.direction, r.direction);
+	//t = -m / d;
+	//if (t <= 0)
+	//	return (false);
+	//if (t <= *(current_z) || *(current_z) == -1)
+	//{
+	//	*current_z = t;
+	//	return (true);
+	//}
+	//return (false);
 }

@@ -16,17 +16,29 @@ int	mlx_int_param_undef()
 
 int	mlx_int_param_KeyPress(t_xvar *xvar, XEvent *ev, t_win_list *win)
 {
-  win->hooks[KeyPress].hook(XkbKeycodeToKeysym(xvar->display,
-					       ev->xkey.keycode, 0, 0),
+  win->hooks[KeyPress].hook(ev->xkey.keycode,
 			    win->hooks[KeyPress].param);
 }
 
+//int mlx_int_param_KeyPress(t_xvar *xvar, XEvent *ev, t_win_list *win)
+//{
+//  win->hooks[KeyPress].hook(XkbKeycodeToKeysym(xvar->display,
+//                 ev->xkey.keycode, 0, 0),
+//          win->hooks[KeyPress].param);
+//}
+
 int	mlx_int_param_KeyRelease(t_xvar *xvar, XEvent *ev, t_win_list *win)
 {
-  win->hooks[KeyRelease].hook(XkbKeycodeToKeysym(xvar->display,
-						 ev->xkey.keycode, 0, 0),
+  win->hooks[KeyRelease].hook(ev->xkey.keycode
 			      win->hooks[KeyRelease].param);
 }
+
+//int mlx_int_param_KeyRelease(t_xvar *xvar, XEvent *ev, t_win_list *win)
+//{
+//  win->hooks[KeyRelease].hook(XkbKeycodeToKeysym(xvar->display,
+//             ev->xkey.keycode, 0, 0),
+//            win->hooks[KeyRelease].param);
+//}
 
 int	mlx_int_param_ButtonPress(t_xvar *xvar, XEvent *ev, t_win_list *win)
 {
