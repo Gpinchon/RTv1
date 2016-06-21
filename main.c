@@ -6,13 +6,15 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/17 20:46:53 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/06/20 20:33:15 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/06/21 21:09:49 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 # include <rt.h>
 # include <stdio.h>
 # define	SUPERSAMPLING	1
+# define	WIDTH		512
+# define	HEIGHT		512
 
 float		*get_current_z(t_depth_buffer *depth,
 	t_point2 screen_size, t_point2 current)
@@ -54,7 +56,7 @@ t_rgb	compute_illumination(t_primitive p, t_light l, t_vec3 data[4])
 	return (c);
 }
 
-t_rgb	compute_point_color(t_primitive p, t_camera c, t_light l, float *z)
+t_rgb	compute_point_color(t_rt rt, t_primitive p, t_camera c, t_light l, float *z)
 {
 	t_vec3		position;
 	t_vec3		light_dir;
@@ -68,7 +70,7 @@ t_rgb	compute_point_color(t_primitive p, t_camera c, t_light l, float *z)
 	light_dir = compute_lightdir(l, position);
 	view_dir = vec3_normalize(vec3_substract(c.ray.origin, position));
 	color = compute_illumination(p, l,
-		(t_vec3[]){position, light_dir, view_dir, p.normal(position, p)});
+		(t_vec3[]){position, light_dir, view_dir, rt.normal[p.type](position, p)});
 	return ((t_rgb){clamp(color.r, 0, 1), clamp(color.g, 0, 1), clamp(color.b, 0, 1)});
 }
 
@@ -188,8 +190,8 @@ t_ray	generate_ray(t_camera gopro, float x, float y)
 	t_ray ray;
 
 	ray.origin = gopro.position;
-	ray.direction = (m3_mult_vec3(gopro.transform,
-					(new_vec3(x, y, 1))));
+	ray.direction = m3_mult_vec3(gopro.transform,
+					new_vec3(x, y, 1));
 	return (ray);
 }
 
@@ -204,6 +206,10 @@ t_ray	generate_shadow_ray(t_camera c, t_light l, float z)
 	ray.direction = l.type == DIRECTIONAL ? vec3_normalize(l.position) : vec3_normalize(vec3_substract(l.position, ray.origin));
 	//ray.direction = l.type == DIRECTIONAL ? vec3_normalize(l.position) : vec3_normalize(vec3_substract(ray.origin, l.position));
 	ray.origin = vec3_add(ray.origin, vec3_scale(ray.direction, 0.5));
+//	if (l.type == SPOT)
+//		printf(
+//"origin %f, %f, %f\n\
+//direction %f, %f, %f\n", ray.origin.x, ray.origin.y, ray.origin.z,  ray.direction.x, ray.direction.y, ray.direction.z);
 	return (ray);
 }
 
@@ -216,23 +222,49 @@ enum e_bool	in_shadow(t_rt rt, t_light l, double z)
 	{
 		t_ray	shadow_ray = generate_shadow_ray(rt.scene.camera, l, z);
 		float	fake_z = vec3_distance(l.position, shadow_ray.origin);
-		if (rt.scene.primitive[k].intersect(rt.scene.primitive[k], shadow_ray, &fake_z))
+		if (rt.intersect[rt.scene.primitive[k].type](rt.scene.primitive[k], shadow_ray, &fake_z))
 			return (true);
 		k++;
 	}
 	return (false);
 }
 
+float	iterate_through_primitives(t_rt rt, t_point2 obj, t_rgb *color)
+{
+	float		z;
+
+	z = -1;
+	while (obj.x < rt.scene.primitive_nbr)
+	{
+		if (rt.intersect[rt.scene.primitive[obj.x].type](rt.scene.primitive[obj.x], rt.scene.camera.ray, &z))
+		{
+			obj.y = 0;
+			while (obj.y < rt.scene.light_nbr)
+			{
+				if (!in_shadow(rt, rt.scene.light[obj.y], z))
+					*(color) = obj.y > 0 ? rgb_add(*(color), compute_point_color(rt, rt.scene.primitive[obj.x], rt.scene.camera, rt.scene.light[obj.y], &z)) :
+					compute_point_color(rt, rt.scene.primitive[obj.x], rt.scene.camera, rt.scene.light[obj.y], &z);
+				else
+					*(color) = obj.y > 0 ? rgb_add(*(color), rgba_to_rgb(rt.scene.primitive[obj.x].material.ambient)) : rgba_to_rgb(rt.scene.primitive[obj.x].material.ambient);
+				obj.y++;
+			}
+			z = (z + z) * 0.5;
+		}
+		obj.x++;
+	}
+	return (z);
+}
+
 t_rgb	iterate_through_pixel(t_point2 size, t_rt rt, t_point2 current)
 {
 	t_vec2		fcur;
-	t_rgb		final_color;
+	t_rgb		color[2];
 	float		z;
 	float		*current_z;
 	t_point2	obj;
 
 	fcur.y = current.y;
-	final_color = (t_rgb){0, 0, 0};
+	color[1] = (t_rgb){0, 0, 0};
 	current_z = get_current_z(rt.depth, size, current);
 	while (fcur.y < current.y + 1)
 	{
@@ -241,33 +273,15 @@ t_rgb	iterate_through_pixel(t_point2 size, t_rt rt, t_point2 current)
 		{
 			obj.x = 0;
 			rt.scene.camera.ray = generate_ray(rt.scene.camera, (size.x - 2 * fcur.x), (size.y - 2 * fcur.y));
-			t_rgb color = rgb_divide(BACKGROUND, 255);
-			z = -1;
-			while (obj.x < rt.scene.primitive_nbr)
-			{
-				if (rt.scene.primitive[obj.x].intersect(rt.scene.primitive[obj.x], rt.scene.camera.ray, &z))
-				{
-					obj.y = 0;
-					while (obj.y < rt.scene.light_nbr)
-					{
-						if (!in_shadow(rt, rt.scene.light[obj.y], z))
-							color = obj.y > 0 ? rgb_add(color, compute_point_color(rt.scene.primitive[obj.x], rt.scene.camera, rt.scene.light[obj.y], &z)) :
-							compute_point_color(rt.scene.primitive[obj.x], rt.scene.camera, rt.scene.light[obj.y], &z);
-						else
-							color = obj.y > 0 ? rgb_add(color, rgba_to_rgb(rt.scene.primitive[obj.x].material.ambient)) : rgba_to_rgb(rt.scene.primitive[obj.x].material.ambient);
-						obj.y++;
-					}
-					z = (z + z) * 0.5;
-				}
-				obj.x++;
-			}
-			final_color = rgb_add(final_color, (t_rgb){color.r > 1 ? 1 : color.r, color.g > 1 ? 1 : color.g, color.b > 1 ? 1 : color.b});
+			color[0] = BACKGROUND;
+			z = iterate_through_primitives(rt, obj, &color[0]);
+			color[1] = rgb_add(color[1], (t_rgb){color[0].r > 1 ? 1 : color[0].r, color[0].g > 1 ? 1 : color[0].g, color[0].b > 1 ? 1 : color[0].b});
 			fcur.x += 1 / ((float)SUPERSAMPLING);
 		}
 		fcur.y += 1 / ((float)SUPERSAMPLING);
 	}
 	*(current_z) = z != -1 ? z : *(current_z);
-	return (final_color);
+	return (color[1]);
 }
 
 void	do_raytracer(t_point2 size, t_rt rt)
@@ -332,6 +346,7 @@ void	exit_rt(int key, t_rt *rt)
 {
 	destroy_framework(rt->framework);
 	destroy_depth_buffer(rt->depth);
+	ft_putstr("kthxbye !\n");
 	exit(key);
 }
 
@@ -379,51 +394,104 @@ t_mtl	new_mtl(t_rgba diffuse, t_rgba ambient, t_rgba specular, t_vec3 factors)
 
 t_light	new_light(int type, t_vec3 position, t_vec3 direction, t_rgb color, float power, float attenuation, float falloff, float spot_size, float specular)
 {
-	t_light	light;
+	t_light	l;
 
-	light.type = type;
-	light.position = position;
-	light.direction = direction;
-	light.color = color;
-	light.power = power;
-	light.attenuation = attenuation;
-	light.falloff = falloff;
-	light.spot_size = spot_size;
-	light.specular = specular;
-	return (light);
+	l.type = type;
+	l.position = position;
+	l.direction = direction;
+	l.color = color;
+	l.power = power;
+	l.attenuation = attenuation;
+	l.falloff = falloff;
+	l.spot_size = spot_size;
+	l.specular = specular;
+	return (l);
+}
+
+#include <fcntl.h>
+
+void save_scene(int keycode, t_scene *scene)
+{
+	int fd;
+
+	fd = open("scene.rtscene", O_CREAT | O_RDWR, S_IWRITE | S_IREAD);
+	write(fd, scene, sizeof(t_scene));
+	write(fd, scene->primitive, sizeof(t_primitive) * scene->primitive_nbr);
+	write(fd, scene->light, sizeof(t_light) * scene->light_nbr);
+	close(fd);
+	(void)keycode;
+}
+
+t_scene	load_scene(char *filepath)
+{
+	t_scene	scene;
+	int		fd;
+	int		readsize;
+
+	fd = open(filepath, O_RDONLY, 0);
+	readsize = read(fd, &scene, sizeof(t_scene));
+	if (readsize != sizeof(t_scene))
+	{
+		ft_putstr("INVALID MAP !\n");
+		exit(-42);
+	}
+	scene.primitive = ft_memalloc(sizeof(t_primitive) * scene.primitive_nbr);
+	readsize = read(fd, scene.primitive, sizeof(t_primitive) * scene.primitive_nbr);
+	if (readsize != sizeof(t_primitive) * scene.primitive_nbr)
+	{
+		ft_putstr("INVALID MAP !\n");
+		exit(-42);
+	}
+	scene.light = ft_memalloc(sizeof(t_light) * scene.light_nbr);
+	readsize = read(fd, scene.light, sizeof(t_light) * scene.light_nbr);
+	if (readsize != sizeof(t_light) * scene.light_nbr)
+	{
+		ft_putstr("INVALID MAP !\n");
+		exit(-42);
+	}
+	close(fd);
+	fd = 0;
+	return (scene);
 }
 
 int main()
 {
 	t_rt	rt;
+	rt.scene = load_scene("scene.rtscene");
 	rt.framework = init_framework();
 	rt.window = new_window(rt.framework, WIDTH, HEIGHT, "RTv1");
 	rt.image = new_image(rt.framework, WIDTH, HEIGHT, "display");
-	rt.depth = new_depth_buffer((t_point2){512, 512});
-	rt.scene.camera = new_camera((t_vec3){300, 300, 300}, (t_vec3){0, 100, 0}, (t_vec3){0, 1, 0}, (t_vec2){TO_RADIAN(45), HEIGHT / (float)WIDTH});
-	rt.scene.primitive = (t_primitive[]){
-		new_sphere((t_vec3){0, 125, 0}, 125),
-		new_sphere((t_vec3){150, 50, 0}, 50),
-		new_cylinder((t_vec3){250, 0, 250}, (t_vec3){0, 1, 0}, 10, 100),
-		new_cone((t_vec3){250, 250, 250}, (t_vec3){0, -1, 0}, 20, 200),
-		new_plane((t_vec3){0, 0, 0}, (t_vec3){0, 1, 0})};
-	rt.scene.primitive[0].material = new_mtl((t_rgba){0, 0, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){80, 0, 1});
-	rt.scene.primitive[1].material = new_mtl((t_rgba){0, 1, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){30, 1, 1});
-	rt.scene.primitive[4].material = new_mtl((t_rgba){0, 0, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){10, 0.9, 1});
-	rt.scene.primitive[2].material = new_mtl((t_rgba){0.8, 0.2, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){10, 0.3, 1});
-	rt.scene.primitive[3].material = new_mtl((t_rgba){0, 0.8, 0, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){30, 0.3, 1});
-	//rt.scene.primitive = (t_primitive[]){new_cone((t_vec3){0, 0, 0}, (t_vec3){0, -1, 0}, 20, 200)};
+	rt.depth = new_depth_buffer((t_point2){1, 1});
+	rt.intersect[SPHERE] = intersect_sphere;
+	rt.intersect[CYLINDER] = intersect_cylinder;
+	rt.intersect[CONE] = intersect_cone;
+	rt.intersect[PLANE] = intersect_plane;
+	rt.normal[SPHERE] = sphere_normal;
+	rt.normal[CYLINDER] = cylinder_normal;
+	rt.normal[CONE] = cone_normal;
+	rt.normal[PLANE] = plane_normal;
+	//rt.scene.camera = new_camera((t_vec3){300, 250, 300}, (t_vec3){0, 200, 0}, (t_vec3){0, 1, 0}, (t_vec2){TO_RADIAN(45), HEIGHT / (float)WIDTH});
+	//rt.scene.primitive = (t_primitive[]){
+	//	new_sphere((t_vec3){0, 125, 0}, 125),
+	//	new_sphere((t_vec3){150, 50, 0}, 50),
+	//	new_cylinder((t_vec3){0, 300, 0}, (t_vec3){0, 1, 0}, 10, 200),
+	//	new_cone((t_vec3){0, 500, 0}, (t_vec3){0, -1, 0}, 20, 200),
+	//	new_plane((t_vec3){0, 0, 0}, (t_vec3){0, 1, 0})};
 	//rt.scene.primitive[0].material = new_mtl((t_rgba){0, 0, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){80, 0, 1});
-	rt.scene.primitive_nbr = 5;
-	rt.scene.light = (t_light[]){
-		new_light(SPOT, (t_vec3){150, 500, 150}, (t_vec3){0, -1, 0}, (t_rgb){1, 1, 1}, 1, 0.002, 300, 90, 1),
-		new_light(POINT, (t_vec3){300, 300, -300}, (t_vec3){0, 0, 0}, (t_rgb){0, 0, 1}, 1, 0.002, 300, 150, 1),
-		new_light(POINT, (t_vec3){-300, 300, 300}, (t_vec3){0, 0, 0}, (t_rgb){1, 0, 0}, 1, 0.002, 300, 150, 1),
-		new_light(DIRECTIONAL, (t_vec3){1, 1, 1}, (t_vec3){0, 0, 0}, (t_rgb){1, 1, 1}, 0.5, 0.002, 300, 150, 0)
-	};
-	rt.scene.light_nbr = 1;
+	//rt.scene.primitive[1].material = new_mtl((t_rgba){0, 1, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){30, 1, 1});
+	//rt.scene.primitive[4].material = new_mtl((t_rgba){0, 0, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){10, 0.9, 1});
+	//rt.scene.primitive[2].material = new_mtl((t_rgba){0.8, 0.2, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){10, 0.3, 1});
+	//rt.scene.primitive[3].material = new_mtl((t_rgba){0, 0.8, 0, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){30, 0.3, 1});
+	//rt.scene.primitive_nbr = 5;
+	//rt.scene.light = (t_light[]){
+	//	new_light(POINT, (t_vec3){0, 1000, 0}, (t_vec3){0, -1, 0}, (t_rgb){1, 1, 1}, 1, 0.002, 300, 90, 1),
+	//	new_light(POINT, (t_vec3){300, 300, -300}, (t_vec3){0, 0, 0}, (t_rgb){0, 0, 1}, 1, 0.002, 300, 150, 1),
+	//	new_light(POINT, (t_vec3){-300, 300, 300}, (t_vec3){0, 0, 0}, (t_rgb){1, 0, 0}, 1, 0.002, 300, 150, 1),
+	//	new_light(DIRECTIONAL, (t_vec3){0, 1, 0}, (t_vec3){0, 0, 0}, (t_rgb){1, 1, 1}, 0.5, 0.002, 300, 150, 0)
+	//};
+	//rt.scene.light_nbr = 3;
 	attach_image_to_window(rt.image, rt.window);
-	fill_image(rt.image, BACKGROUND);
+	fill_image(rt.image, rgb_scale(BACKGROUND, 255));
 	refresh_window(rt.window);
 	setup_keypress(rt.window, ESCAPE, exit_rt, &rt);
 	setup_keypress(rt.window, LEFTARROW, move_along_x, &rt);
@@ -432,6 +500,10 @@ int main()
 	setup_keypress(rt.window, KEYPADMINUS, move_along_y, &rt);
 	setup_keypress(rt.window, UPARROW, move_along_z, &rt);
 	setup_keypress(rt.window, DOWNARROW, move_along_z, &rt);
+	setup_keypress(rt.window, S_KEY, save_scene, &rt.scene);
+	//save_scene(&rt.scene);
+	printf("%p\n", &rt.scene);
+	printf("%i\n", S_KEY);
 	loop_callback(rt.framework, refresh_window, rt.window);
 	do_raytracer((t_point2){WIDTH, HEIGHT}, rt);
 	init_loop(rt.framework);

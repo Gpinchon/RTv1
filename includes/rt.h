@@ -3,9 +3,7 @@
 # include <adv_math.h>
 # include <keys.h>
 
-# define	WIDTH		512
-# define	HEIGHT		512
-# define	BACKGROUND	(t_rgb){127, 127, 127}
+# define	BACKGROUND	(t_rgb){0.5, 0.5, 0.5}
 # define	DIFFUSE		oren_nayar_diffuse
 # define	SPECULAR	trowbridge_reitz_specular
 # define	DIRECTIONAL	0x0
@@ -18,6 +16,7 @@
 # define	CYLINDER	0x1
 # define	CONE		0x3
 # define	PLANE		0x4
+# define	MAX_PRIM	0x5
 
 typedef struct	s_mtl
 {
@@ -40,8 +39,8 @@ typedef	struct	s_primitive
 	float		radius;
 	float		radius2;
 	float		size;
-	enum e_bool	(*intersect)();
-	t_vec3		(*normal)();
+	//enum e_bool	(*intersect)();
+	//t_vec3		(*normal)();
 }				t_primitive;
 
 typedef struct	s_light
@@ -94,6 +93,8 @@ typedef struct	s_rt
 	void			*framework;
 	void			*window;
 	void			*image;
+	enum e_bool		(*intersect[MAX_PRIM])();
+	t_vec3			(*normal[MAX_PRIM])();
 	t_scene			scene;
 	t_depth_buffer	*depth;
 }				t_rt;

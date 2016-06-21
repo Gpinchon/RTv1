@@ -8,14 +8,14 @@ enum e_bool	test_intersect(float t[2], float *current_z)
 
 	retvalue = false;
 	if ((t[0] > DOUBLE_ZERO)
-	&& (t[0] <= *(current_z) || *current_z == -1))
+	&& (t[0] < *(current_z) || *current_z == -1))
 	{
 		*(current_z) = t[0];
 		retvalue = true;
 	}
 	if (!float_equal(t[0], t[1])
 	&& (t[1] > DOUBLE_ZERO) 
-	&& (t[1] <= *(current_z) || *current_z == -1))
+	&& (t[1] < *(current_z) || *current_z == -1))
 	{
 		*(current_z) = t[1];
 		retvalue = true;

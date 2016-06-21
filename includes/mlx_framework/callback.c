@@ -53,6 +53,7 @@ int		handle_keypress(int keycode, t_window *window)
 	return (0);
 }
 
+
 void	setup_keypress(t_window *window, int keycode, void (*keyfun)(), void *arg)
 {
 	FRAMEWORK_DEBUG(!window, NULL_WINDOW_POINTER, "In key_callback\n");
