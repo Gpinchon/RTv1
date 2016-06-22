@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/09 18:24:26 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/06/20 17:14:38 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/06/22 12:57:56 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,8 +33,10 @@
 
 char	*g_errors[MAX_ERROR];
 
+# define DEBUG
 # ifdef DEBUG
-#  define FRAMEWORK_DEBUG(cond, c, fn)	if(cond){print_error(c);ft_putstr(fn);}
+# include <assert.h>
+#  define FRAMEWORK_DEBUG(cond, c, fn)	if(cond){print_error(c, fn);}
 # else
 #  define FRAMEWORK_DEBUG(cond, c, fn)
 # endif
@@ -151,7 +153,7 @@ void			*get_mlx_ptr(t_framework *framework);
 ** Error Management
 */
 void			init_errors();
-void			print_error(int error_code);
+void			print_error(int error_code, const char *function_name);
 /*
 ** Callback functions
 */

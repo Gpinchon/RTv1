@@ -7,6 +7,8 @@ enum e_bool	test_intersect(float t[2], float *current_z)
 	enum e_bool	retvalue;
 
 	retvalue = false;
+	//if ((t[0] < 0 && t[1] > 0) || (t[0] > 0 && t[1] < 0))
+	//	return (false);
 	if ((t[0] > DOUBLE_ZERO)
 	&& (t[0] < *(current_z) || *current_z == -1))
 	{
@@ -37,8 +39,8 @@ enum e_bool solve_quadratic(float a, float b, float c, float *t)
 	float	discrim;
 	float	q;
 
-	discrim = b * b - 4.f * a * c;
-	if (discrim <= DOUBLE_ZERO)
+	discrim = (b * b - 4.f * a * c);
+	if (discrim <= 0)
 		return (false);
 	discrim = sqrtf(discrim);
 	if (b < 0)

@@ -75,11 +75,10 @@ typedef struct	s_camera
 typedef struct	s_scene
 {
 	t_camera	camera;
-	t_light		*light;
-	t_primitive	*primitive;
-	t_mtl		*materials;
 	int			primitive_nbr;
 	int			light_nbr;
+	t_primitive	*primitive;
+	t_light		*light;
 }				t_scene;
 
 typedef struct	s_depth_buffer

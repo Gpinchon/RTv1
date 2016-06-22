@@ -6,12 +6,13 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/17 20:46:53 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/06/21 21:09:49 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/06/22 17:25:14 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 # include <rt.h>
 # include <stdio.h>
+# include <assert.h>
 # define	SUPERSAMPLING	1
 # define	WIDTH		512
 # define	HEIGHT		512
@@ -177,11 +178,6 @@ t_camera	update_camera(t_camera gopro, float aspect)
 		u.x * 2, u.y * 2, u.z * 2,
 		v.x, v.y, v.z, 
 	}};
-	//gopro.transform = (t_mat3){.m = {
-	//r.x * 2, u.x * 2, v.x,
-	//r.y * 2, u.y * 2, v.y,
-	//r.z * 2, u.z * 2, v.z
-	//}};
 	return (gopro);
 }
 
@@ -205,7 +201,7 @@ t_ray	generate_shadow_ray(t_camera c, t_light l, float z)
 		(c.ray.origin.z + c.ray.direction.z * z)};;
 	ray.direction = l.type == DIRECTIONAL ? vec3_normalize(l.position) : vec3_normalize(vec3_substract(l.position, ray.origin));
 	//ray.direction = l.type == DIRECTIONAL ? vec3_normalize(l.position) : vec3_normalize(vec3_substract(ray.origin, l.position));
-	ray.origin = vec3_add(ray.origin, vec3_scale(ray.direction, 0.5));
+	ray.origin = vec3_add(ray.origin, vec3_scale(ray.direction, 1));
 //	if (l.type == SPOT)
 //		printf(
 //"origin %f, %f, %f\n\
@@ -356,6 +352,7 @@ void	move_along_x(int key, t_rt *rt)
 	rt->scene.camera = update_camera(rt->scene.camera, HEIGHT / (float)WIDTH);
 	do_raytracer((t_point2){WIDTH, HEIGHT}, *rt);
 	refresh_window(rt->window);
+	//printf("%f, %f, %f\n", rt->scene.camera.position.x, rt->scene.camera.position.y, rt->scene.camera.position.z);
 }
 
 void	move_along_y(int key, t_rt *rt)
@@ -364,6 +361,7 @@ void	move_along_y(int key, t_rt *rt)
 	rt->scene.camera = update_camera(rt->scene.camera, HEIGHT / (float)WIDTH);
 	do_raytracer((t_point2){WIDTH, HEIGHT}, *rt);
 	refresh_window(rt->window);
+	//printf("%f, %f, %f\n", rt->scene.camera.position.x, rt->scene.camera.position.y, rt->scene.camera.position.z);
 }
 
 void	move_along_z(int key, t_rt *rt)
@@ -372,6 +370,7 @@ void	move_along_z(int key, t_rt *rt)
 	rt->scene.camera = update_camera(rt->scene.camera, HEIGHT / (float)WIDTH);
 	do_raytracer((t_point2){WIDTH, HEIGHT}, *rt);
 	refresh_window(rt->window);
+	//printf("%f, %f, %f\n", rt->scene.camera.position.x, rt->scene.camera.position.y, rt->scene.camera.position.z);
 }
 
 /*
@@ -409,6 +408,7 @@ t_light	new_light(int type, t_vec3 position, t_vec3 direction, t_rgb color, floa
 }
 
 #include <fcntl.h>
+# define UINT unsigned int
 
 void save_scene(int keycode, t_scene *scene)
 {
@@ -422,42 +422,69 @@ void save_scene(int keycode, t_scene *scene)
 	(void)keycode;
 }
 
-t_scene	load_scene(char *filepath)
+void	check_scene_read(UINT readsize, UINT expected)
 {
-	t_scene	scene;
+	if (readsize != expected)
+	{
+		ft_putstr("INVALID MAP !\n");
+		exit(-42);
+	}
+}
+
+t_scene	load_scene(const char *filepath)
+{
+	t_scene	s;
+	char 	dumy[1];
 	int		fd;
-	int		readsize;
 
 	fd = open(filepath, O_RDONLY, 0);
-	readsize = read(fd, &scene, sizeof(t_scene));
-	if (readsize != sizeof(t_scene))
-	{
-		ft_putstr("INVALID MAP !\n");
-		exit(-42);
-	}
-	scene.primitive = ft_memalloc(sizeof(t_primitive) * scene.primitive_nbr);
-	readsize = read(fd, scene.primitive, sizeof(t_primitive) * scene.primitive_nbr);
-	if (readsize != sizeof(t_primitive) * scene.primitive_nbr)
-	{
-		ft_putstr("INVALID MAP !\n");
-		exit(-42);
-	}
-	scene.light = ft_memalloc(sizeof(t_light) * scene.light_nbr);
-	readsize = read(fd, scene.light, sizeof(t_light) * scene.light_nbr);
-	if (readsize != sizeof(t_light) * scene.light_nbr)
-	{
-		ft_putstr("INVALID MAP !\n");
-		exit(-42);
-	}
+	check_scene_read(read(fd, &s, sizeof(t_scene)), sizeof(t_scene));
+	check_scene_read(read(fd,
+		s.primitive = ft_memalloc(sizeof(t_primitive) * s.primitive_nbr),
+		sizeof(t_primitive) * s.primitive_nbr),
+		sizeof(t_primitive) * s.primitive_nbr);
+	check_scene_read(read(fd,
+		s.light = ft_memalloc(sizeof(t_light) * s.light_nbr),
+		sizeof(t_light) * s.light_nbr),
+		sizeof(t_light) * s.light_nbr);
+	check_scene_read(read(fd, dumy, 1), 0);
 	close(fd);
-	fd = 0;
+	return (s);
+}
+
+t_scene	default_scene()
+{
+	t_scene scene;
+
+	scene.camera = new_camera((t_vec3){50, 0, -550}, (t_vec3){0, -50, 0}, (t_vec3){0, 1, 0}, (t_vec2){TO_RADIAN(30), HEIGHT / (float)WIDTH});
+	scene.primitive = ft_memalloc(sizeof(t_primitive) * 2);
+	scene.primitive[0] = new_sphere((t_vec3){0, 100, 0}, 100);
+	scene.primitive[1] = new_cylinder((t_vec3){0, -100, 0}, (t_vec3){0, 1, 0}, 10, 400);
+	scene.primitive[0].material = new_mtl((t_rgba){1, 0, 0, 1}, (t_rgba){0.1, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){80, 0.2, 1});
+	scene.primitive[1].material = new_mtl((t_rgba){1, 1, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){10, 1, 1});
+	scene.primitive_nbr = 2;
+	scene.light = ft_memalloc(sizeof(t_light) * 6);
+	scene.light[0] = new_light(POINT, (t_vec3){200, -100, 200}, vec3_negate(vec3_normalize((t_vec3){200, -100, 200})), (t_rgb){1, 1, 0}, 1, 0.002, 200, 80, 1);
+	scene.light[1] = new_light(POINT, (t_vec3){-200, -100, 200}, vec3_negate(vec3_normalize((t_vec3){-200, -100, 200})), (t_rgb){1, 0, 1}, 1, 0.002, 200, 80, 1);
+	scene.light[2] = new_light(POINT, (t_vec3){-200, -100, -200}, vec3_negate(vec3_normalize((t_vec3){-200, -100, -200})), (t_rgb){0, 1, 1}, 1, 0.002, 200, 80, 1);
+	scene.light[3] = new_light(POINT, (t_vec3){200, -100, -200}, vec3_negate(vec3_normalize((t_vec3){200, -100, -200})), (t_rgb){0, 0, 1}, 1, 0.002, 200, 80, 1);
+	scene.light[4] = new_light(DIRECTIONAL, (t_vec3){1, 1, 0}, (t_vec3){0, 0, 0}, (t_rgb){1, 1, 1}, 0.5, 0.002, 200, 70, 1);
+	scene.light[5] = new_light(DIRECTIONAL, (t_vec3){-1, -1, 0}, (t_vec3){0, 0, 0}, (t_rgb){1, 1, 0.8}, 0.3, 0.002, 200, 70, 0);
+	scene.light_nbr = 6;
+	ft_putstr("Lollipop ?\n");
 	return (scene);
 }
 
-int main()
+int main(int argc, const char** argv)
 {
 	t_rt	rt;
-	rt.scene = load_scene("scene.rtscene");
+	if (argc > 1)
+		rt.scene = load_scene(argv[1]);
+	else
+	{
+		ft_putstr("Please specify a map !\nCreating default scene...\n");
+		rt.scene = default_scene();
+	}
 	rt.framework = init_framework();
 	rt.window = new_window(rt.framework, WIDTH, HEIGHT, "RTv1");
 	rt.image = new_image(rt.framework, WIDTH, HEIGHT, "display");
@@ -470,26 +497,6 @@ int main()
 	rt.normal[CYLINDER] = cylinder_normal;
 	rt.normal[CONE] = cone_normal;
 	rt.normal[PLANE] = plane_normal;
-	//rt.scene.camera = new_camera((t_vec3){300, 250, 300}, (t_vec3){0, 200, 0}, (t_vec3){0, 1, 0}, (t_vec2){TO_RADIAN(45), HEIGHT / (float)WIDTH});
-	//rt.scene.primitive = (t_primitive[]){
-	//	new_sphere((t_vec3){0, 125, 0}, 125),
-	//	new_sphere((t_vec3){150, 50, 0}, 50),
-	//	new_cylinder((t_vec3){0, 300, 0}, (t_vec3){0, 1, 0}, 10, 200),
-	//	new_cone((t_vec3){0, 500, 0}, (t_vec3){0, -1, 0}, 20, 200),
-	//	new_plane((t_vec3){0, 0, 0}, (t_vec3){0, 1, 0})};
-	//rt.scene.primitive[0].material = new_mtl((t_rgba){0, 0, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){80, 0, 1});
-	//rt.scene.primitive[1].material = new_mtl((t_rgba){0, 1, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){30, 1, 1});
-	//rt.scene.primitive[4].material = new_mtl((t_rgba){0, 0, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){10, 0.9, 1});
-	//rt.scene.primitive[2].material = new_mtl((t_rgba){0.8, 0.2, 1, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){10, 0.3, 1});
-	//rt.scene.primitive[3].material = new_mtl((t_rgba){0, 0.8, 0, 1}, (t_rgba){0, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){30, 0.3, 1});
-	//rt.scene.primitive_nbr = 5;
-	//rt.scene.light = (t_light[]){
-	//	new_light(POINT, (t_vec3){0, 1000, 0}, (t_vec3){0, -1, 0}, (t_rgb){1, 1, 1}, 1, 0.002, 300, 90, 1),
-	//	new_light(POINT, (t_vec3){300, 300, -300}, (t_vec3){0, 0, 0}, (t_rgb){0, 0, 1}, 1, 0.002, 300, 150, 1),
-	//	new_light(POINT, (t_vec3){-300, 300, 300}, (t_vec3){0, 0, 0}, (t_rgb){1, 0, 0}, 1, 0.002, 300, 150, 1),
-	//	new_light(DIRECTIONAL, (t_vec3){0, 1, 0}, (t_vec3){0, 0, 0}, (t_rgb){1, 1, 1}, 0.5, 0.002, 300, 150, 0)
-	//};
-	//rt.scene.light_nbr = 3;
 	attach_image_to_window(rt.image, rt.window);
 	fill_image(rt.image, rgb_scale(BACKGROUND, 255));
 	refresh_window(rt.window);
@@ -501,9 +508,6 @@ int main()
 	setup_keypress(rt.window, UPARROW, move_along_z, &rt);
 	setup_keypress(rt.window, DOWNARROW, move_along_z, &rt);
 	setup_keypress(rt.window, S_KEY, save_scene, &rt.scene);
-	//save_scene(&rt.scene);
-	printf("%p\n", &rt.scene);
-	printf("%i\n", S_KEY);
 	loop_callback(rt.framework, refresh_window, rt.window);
 	do_raytracer((t_point2){WIDTH, HEIGHT}, rt);
 	init_loop(rt.framework);
