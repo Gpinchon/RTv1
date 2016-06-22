@@ -1,31 +1,22 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   scalar_operations.c                                :+:      :+:    :+:   */
+/*   operations3.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2016/06/13 14:18:46 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/06/22 19:16:45 by gpinchon         ###   ########.fr       */
+/*   Created: 2016/06/22 19:16:56 by gpinchon          #+#    #+#             */
+/*   Updated: 2016/06/22 19:17:47 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../adv_math.h"
 
-float		vec3_dot(t_vec3 v1, t_vec3 v2)
+t_vec3	vec3_negate(t_vec3 v)
 {
-	return (v1.x * v2.x + v1.y * v2.y + v1.z * v2.z);
-}
-
-float		vec3_distance(t_vec3 v, t_vec3 v1)
-{
-	float a = v1.x - v.x;
-	float b = v1.y - v.y;
-	float c = v1.z - v.z;
-	return (sqrt(a * a + b * b + c * c));
-}
-
-float		vec3_length(t_vec3 v)
-{
-	return (sqrt(v.x * v.x + v.y * v.y + v.z * v.z));
+	return ((t_vec3){
+		-v.x,
+		-v.y,
+		-v.z
+	});
 }

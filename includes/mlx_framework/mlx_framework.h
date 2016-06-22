@@ -6,15 +6,16 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/09 18:24:26 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/06/22 12:57:56 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/06/22 19:39:37 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef MLX_FRAMEWORK_H
 # define MLX_FRAMEWORK_H
 # include "./keys.h"
-# define UCHAR unsigned char
-# define GSTRUCT				struct s_generic
+# define UCHAR		unsigned char
+# define UINT		unsigned int
+# define GSTRUCT	struct s_generic
 
 /*
 ** Error codes

@@ -1,9 +1,18 @@
 NAME	= RT
-SRC	=	./main.c				\
-		./light_computation.c	\
-		./intersections.c		\
-		./primitives_creation.c	\
-		./normal_computation.c
+SRC	=	./main.c					\
+		./light_computation.c		\
+		./intersections.c			\
+		./intersect_cone.c			\
+		./intersect_calc.c			\
+		./primitives_creation.c		\
+		./normal_computation.c		\
+		./camera.c					\
+		./keys.c					\
+		./z_buffer.c				\
+		./scene.c					\
+		./iterate_through_pixel.c	\
+		./raytrace.c				\
+		./mtlightcreate.c
 
 OBJ	= $(SRC:.c=.o)
 CC	= gcc

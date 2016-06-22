@@ -1,7 +1,10 @@
 NAME	= libadv_math.a
 SRC		=	./src/vector3/new.c	\
 			./src/vector3/normalize.c			\
+			./src/vector3/rotation.c			\
 			./src/vector3/operations.c			\
+			./src/vector3/operations2.c			\
+			./src/vector3/operations3.c			\
 			./src/vector3/scalar_operations.c	\
 			./src/float/interpolate.c			\
 			./src/float/operations.c			\

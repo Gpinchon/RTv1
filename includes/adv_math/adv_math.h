@@ -58,6 +58,7 @@ t_vec3	vec4_to_vec3(t_vec4 v);
 */
 float	vec3_dot(t_vec3 v, t_vec3 v1);
 float	vec3_distance(t_vec3 v, t_vec3 v1);
+float	vec3_length(t_vec3 v);
 t_vec3	vec3_add(t_vec3 v, t_vec3 v1);
 t_vec3	vec3_substract(t_vec3 v, t_vec3 v1);
 t_vec3	vec3_multiply(t_vec3 v, t_vec3 v1);
@@ -70,7 +71,10 @@ t_vec3	vec3_fadd(t_vec3 v, float d);
 t_vec3	vec3_abs(t_vec3 v);
 t_vec3	vec3_negate(t_vec3 v);
 t_vec3	vec3_project(t_vec3 v, t_vec3 v1);
-float	vec3_length(t_vec3 v);
+t_vec3	vec3_rotx(const t_vec3 vec, const float r);
+t_vec3	vec3_roty(const t_vec3 vec, const float r);
+t_vec3	vec3_rotz(const t_vec3 vec, const float r);
+t_vec3	vec3_rot(const t_vec3 vec, const t_vec3 vec1);
 /*
 ** Linear Interpolation
 */

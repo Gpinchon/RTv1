@@ -1,4 +1,16 @@
-# include <rt.h>
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   primitives_creation.c                              :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2016/06/22 18:48:34 by gpinchon          #+#    #+#             */
+/*   Updated: 2016/06/22 20:26:44 by gpinchon         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include <rt.h>
 
 t_primitive	new_sphere(t_vec3 position, float radius)
 {
@@ -7,40 +19,34 @@ t_primitive	new_sphere(t_vec3 position, float radius)
 	p.radius = radius;
 	p.radius2 = p.radius * p.radius;
 	p.position = position;
-	//p.intersect = intersect_sphere;
-	//p.normal = sphere_normal;
 	p.type = SPHERE;
-	return(p);
+	return (p);
 }
 
-t_primitive	new_cylinder(t_vec3 position, t_vec3 direction, float radius, float size)
+t_primitive	new_cylinder(t_vec3 pos, t_vec3 dir, float radius, float size)
 {
 	t_primitive	p;
 
 	p.radius = radius;
 	p.radius2 = p.radius * p.radius;
 	p.size = size;
-	p.position = position;
-	p.direction = direction;
-	//p.intersect = intersect_cylinder;
-	//p.normal = cylinder_normal;
+	p.position = pos;
+	p.direction = dir;
 	p.type = CYLINDER;
-	return(p);
+	return (p);
 }
 
-t_primitive	new_cone(t_vec3 position, t_vec3 direction, float radius, float size)
+t_primitive	new_cone(t_vec3 pos, t_vec3 dir, float radius, float size)
 {
 	t_primitive	p;
 
 	p.radius = TO_RADIAN(radius);
 	p.radius2 = p.radius * p.radius;
 	p.size = size;
-	p.position = position;
-	p.direction = direction;
-	//p.intersect = intersect_cone;
-	//p.normal = cone_normal;
+	p.position = pos;
+	p.direction = dir;
 	p.type = CONE;
-	return(p);
+	return (p);
 }
 
 t_primitive	new_plane(t_vec3 position, t_vec3 direction)
@@ -49,8 +55,6 @@ t_primitive	new_plane(t_vec3 position, t_vec3 direction)
 
 	p.position = position;
 	p.direction = direction;
-	//p.intersect = intersect_plane;
-	//p.normal = plane_normal;
 	p.type = PLANE;
-	return(p);
+	return (p);
 }
