@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/22 21:20:41 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/06/22 21:24:04 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/06/23 18:13:08 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,6 +89,7 @@ t_rgb				iterate_through_pixel(t_point2 size, t_rt rt,
 
 	fcur.y = current.y;
 	c[1] = (t_rgb){0, 0, 0};
+	z = -1;
 	while (fcur.y < current.y + 1)
 	{
 		fcur.x = current.x;

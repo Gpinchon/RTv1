@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/22 19:29:43 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/06/22 21:11:28 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/06/23 22:21:28 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,8 @@ void	exit_rt(int key, t_rt *rt)
 	destroy_framework(rt->framework);
 	destroy_depth_buffer(rt->depth);
 	ft_putstr("kthxbye !\n");
+	free(rt->scene.primitive);
+	free(rt->scene.light);
 	exit(key);
 }
 

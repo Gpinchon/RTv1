@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   framework.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2016/06/23 18:27:12 by gpinchon          #+#    #+#             */
+/*   Updated: 2016/06/23 20:34:12 by gpinchon         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "mlx_framework.h"
 #include "internal_framework.h"
 
@@ -26,6 +38,7 @@ void	destroy_framework(t_framework *framework)
 		destroy_windows(framework->windows);
 	if (framework->images)
 		destroy_images(framework->images);
+	free(framework);
 }
 
 void	*get_mlx_ptr(t_framework *framework)

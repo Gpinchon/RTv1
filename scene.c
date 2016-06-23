@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/22 19:36:43 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/06/22 21:10:36 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/06/23 18:11:48 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@ void	save_scene(int keycode, t_scene *scene)
 {
 	int fd;
 
-	fd = open("scene.rtscene", O_CREAT | O_RDWR, S_IWRITE | S_IREAD);
+	fd = open("scene.rtscene", O_CREAT | O_RDWR, S_IRWXU);
 	write(fd, scene, sizeof(t_scene));
 	write(fd, scene->primitive, sizeof(t_primitive) * scene->primitive_nbr);
 	write(fd, scene->light, sizeof(t_light) * scene->light_nbr);

@@ -29,7 +29,7 @@ int	mlx_int_param_KeyPress(t_xvar *xvar, XEvent *ev, t_win_list *win)
 
 int	mlx_int_param_KeyRelease(t_xvar *xvar, XEvent *ev, t_win_list *win)
 {
-  win->hooks[KeyRelease].hook(ev->xkey.keycode
+  win->hooks[KeyRelease].hook(ev->xkey.keycode,
 			      win->hooks[KeyRelease].param);
 }
 

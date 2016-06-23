@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/09 18:24:26 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/06/22 19:39:37 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/06/23 22:18:55 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,6 @@
 
 char	*g_errors[MAX_ERROR];
 
-# define DEBUG
 # ifdef DEBUG
 # include <assert.h>
 #  define FRAMEWORK_DEBUG(cond, c, fn)	if(cond){print_error(c, fn);}
@@ -102,7 +101,7 @@ typedef struct	s_window
 	void		*mlx_ptr;
 	void		*mlx_window;
 	void		*attached_image;
-	t_key		key[MAX_KEYS];
+	t_key		key[MAX_KEYS + 1];
 	t_point2	size;
 }				t_window;
 
@@ -120,7 +119,6 @@ typedef struct	s_framework
 */
 void			*clear_window(t_window *window);
 void			*new_window(t_framework *f, int width, int height, char *name);
-void			*add_window(t_framework *framework, t_window *window);
 void			*destroy_window(t_framework *framework, t_window *window);
 void			destroy_windows(t_framework *framework);
 void			attach_image_to_window(t_img *img, t_window *window);

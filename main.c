@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/17 20:46:53 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/06/22 21:28:50 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/06/23 22:23:39 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,10 @@
 
 void	init_rt(t_rt *rt)
 {
+	rt->scene.primitive = NULL;
+	rt->scene.light = NULL;
+	rt->scene.primitive_nbr = 0;
+	rt->scene.light_nbr = 0;
 	rt->intersect[SPHERE] = intersect_sphere;
 	rt->intersect[CYLINDER] = intersect_cylinder;
 	rt->intersect[CONE] = intersect_cone;
@@ -40,6 +44,7 @@ int		main(int argc, const char **argv)
 {
 	t_rt	rt;
 
+	init_rt(&rt);
 	if (argc > 1)
 		rt.scene = load_scene(argv[1]);
 	else
@@ -51,7 +56,6 @@ int		main(int argc, const char **argv)
 	rt.window = new_window(rt.framework, WIDTH, HEIGHT, "RTv1");
 	rt.image = new_image(rt.framework, WIDTH, HEIGHT, "display");
 	rt.depth = new_depth_buffer((t_point2){1, 1});
-	init_rt(&rt);
 	attach_image_to_window(rt.image, rt.window);
 	fill_image(rt.image, rgb_scale(BACKGROUND, 255));
 	refresh_window(rt.window);

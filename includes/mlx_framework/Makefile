@@ -1,12 +1,15 @@
 NAME	= libmlx_framework.a
-SRC		=	images.c	\
-			windows.c	\
-			objects.c	\
-			framework.c \
-			callback.c	\
-			rgba.c		\
-			rgb.c		\
-			errors.c
+SRC		=	images.c		\
+			images2.c		\
+			windows.c		\
+			new_window.c	\
+			objects.c		\
+			framework.c 	\
+			callback.c		\
+			rgba.c			\
+			rgb.c			\
+			errors.c		\
+			keys.c
 
 OBJ		= $(SRC:.c=.o)
 CC		= gcc

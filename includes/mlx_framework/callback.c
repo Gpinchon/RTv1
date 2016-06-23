@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   callback.c                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2016/06/23 20:30:05 by gpinchon          #+#    #+#             */
+/*   Updated: 2016/06/23 20:30:35 by gpinchon         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "mlx_framework.h"
 #include "internal_framework.h"
 
@@ -22,44 +34,5 @@ void	mouse_callback(t_window *window, int (*fun)(), void *arg)
 void	keypress_callback(t_window *window, int (*fun)(), void *arg)
 {
 	FRAMEWORK_DEBUG(!window, NULL_WINDOW_POINTER, "key_callback");
-	mlx_hook(window->mlx_window, KEYPRESS, 0, fun, arg);
-}
-
-void	init_key_table(t_key *table, int max_keys)
-{
-	while (max_keys)
-	{
-		table[max_keys].callback = NULL;
-		table[max_keys].arg = NULL;
-		max_keys--;
-	}
-}
-
-int		handle_keypress(int keycode, t_window *window)
-{
-	FRAMEWORK_DEBUG(!window, NULL_WINDOW_POINTER, "key_callback");
-	FRAMEWORK_DEBUG(keycode < 0 || keycode >= MAX_KEYS, INVALID_KEYCODE,
-		"key_callback");
-	if (keycode >= 0
-	&& keycode < MAX_KEYS
-	&& window->key[keycode].callback)
-	{
-		if (window->key[keycode].arg)
-			window->key[keycode].callback(keycode, window->key[keycode].arg);
-		else
-			window->key[keycode].callback(keycode);
-		return (1);
-	}
-	return (0);
-}
-
-
-void	setup_keypress(t_window *window, int keycode, void (*keyfun)(), void *arg)
-{
-	FRAMEWORK_DEBUG(!window, NULL_WINDOW_POINTER, "key_callback");
-	if (keycode >= 0 && keycode < MAX_KEYS)
-	{
-		window->key[keycode].callback = keyfun;
-		window->key[keycode].arg = arg;
-	}
+	mlx_hook(window->mlx_window, KEYPRESS, KEYPRESSMASK, fun, arg);
 }
