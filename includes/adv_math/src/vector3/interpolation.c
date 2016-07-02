@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   interpolation.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2016/06/13 14:18:46 by gpinchon          #+#    #+#             */
+/*   Updated: 2016/06/24 16:30:43 by gpinchon         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../../adv_math.h"
 
 t_vec3	vec3_lerp(t_vec3 start, t_vec3 end, float percent)
@@ -23,14 +35,15 @@ t_vec3	vec3_smoothlerp(t_vec3 start, t_vec3 end, float percent)
 
 t_vec3	vec3_slerp(t_vec3 start, t_vec3 end, float percent)
 {
-	float dot;
-	float theta;
-	t_vec3 rel_vec;
+	float	dot;
+	float	theta;
+	t_vec3	rel_vec;
 
 	dot = clamp(vec3_dot(start, end), -1, 1);
 	theta = acos(dot) * percent;
 	rel_vec = vec3_normalize(vec3_fmultiply(vec3_substract(end, start), dot));
-	return (vec3_add(vec3_fmultiply(start, cos(theta)), vec3_fmultiply(rel_vec, sin(theta))));
+	return (vec3_add(vec3_fmultiply(start, cos(theta)),
+		vec3_fmultiply(rel_vec, sin(theta))));
 }
 
 t_vec3	vec3_nlerp(t_vec3 start, t_vec3 end, float percent)

@@ -1,3 +1,15 @@
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    Makefile                                           :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2016/06/27 21:31:31 by gpinchon          #+#    #+#              #
+#    Updated: 2016/06/29 13:51:29 by gpinchon         ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
+
 NAME	= libadv_math.a
 SRC		=	./src/vector3/new.c	\
 			./src/vector3/normalize.c			\
@@ -12,15 +24,24 @@ SRC		=	./src/vector3/new.c	\
 			./src/matrix/initialisation.c		\
 			./src/matrix/projection.c			\
 			./src/matrix/operations.c			\
+			./src/matrix/invert.c			\
 			./src/matrix/mat3_operations.c
 
 OBJ		= $(SRC:.c=.o)
-	CC		= gcc
-	CFLAGS	= -Ofast -Wall -Wextra -Wall
+CC		= gcc
+CFLAGS	= -Ofast -Wall -Wextra -Wall
 
 
 $(NAME): $(OBJ)
 	ar -rc $(NAME) $(OBJ)
+
+NO_COLOR=\033[0m
+OK_COLOR=\033[32;01m
+OK_STRING=$(OK_COLOR)[OK]$(NO_COLOR)
+%.o: %.c
+	@echo -n Compiling $@...
+	@($(CC) $(CFLAGS) -o $@ -c $<)
+	@echo "$(OK_STRING)"
 
 all: $(NAME)
 

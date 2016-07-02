@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/09 18:24:26 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/06/23 22:18:55 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/06/24 15:54:13 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,6 @@
 char	*g_errors[MAX_ERROR];
 
 # ifdef DEBUG
-# include <assert.h>
 #  define FRAMEWORK_DEBUG(cond, c, fn)	if(cond){print_error(c, fn);}
 # else
 #  define FRAMEWORK_DEBUG(cond, c, fn)
@@ -159,7 +158,8 @@ void			print_error(int error_code, const char *function_name);
 void			loop_callback(t_framework *framework, int (*fun)(), void *arg);
 void			expose_callback(t_window *window, int (*fun)(), void *arg);
 void			mouse_callback(t_window *window, int (*fun)(), void *arg);
-void			setup_keypress(t_window *window, int keycode, void (*keyfun)(), void *arg);
+void			setup_keypress(t_window *window, int keycode,
+	void (*keyfun)(), void *arg);
 /*
 ** Color tools
 */

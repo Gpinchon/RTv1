@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/13 14:18:46 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/06/22 19:16:45 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/06/24 16:07:42 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,9 +19,13 @@ float		vec3_dot(t_vec3 v1, t_vec3 v2)
 
 float		vec3_distance(t_vec3 v, t_vec3 v1)
 {
-	float a = v1.x - v.x;
-	float b = v1.y - v.y;
-	float c = v1.z - v.z;
+	float	a;
+	float	b;
+	float	c;
+
+	a = v1.x - v.x;
+	b = v1.y - v.y;
+	c = v1.z - v.z;
 	return (sqrt(a * a + b * b + c * c));
 }
 

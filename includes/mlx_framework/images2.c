@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/23 20:33:12 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/06/23 20:33:57 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/06/24 15:49:16 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,7 +71,7 @@ void	*put_image_to_window(t_img *img, t_window *window, t_point2 pos)
 {
 	FRAMEWORK_DEBUG(!img, NULL_IMAGE_POINTER, "put_image_to_window");
 	FRAMEWORK_DEBUG(!window, NULL_WINDOW_POINTER, "put_image_to_window");
-	mlx_put_image_to_window (img->mlx_ptr, window->mlx_window,
+	mlx_put_image_to_window(img->mlx_ptr, window->mlx_window,
 		img->mlx_img, pos.x, pos.y);
 	return (img);
 }

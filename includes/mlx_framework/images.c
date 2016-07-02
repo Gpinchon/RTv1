@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/23 17:56:10 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/06/23 20:33:02 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/06/24 15:48:14 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 void	destroy_image(t_img *img)
 {
 	t_img *cimg;
+
 	FRAMEWORK_DEBUG(!img, NULL_IMAGE_POINTER, "destroy_image");
 	if ((cimg = (t_img*)img->prev))
 		cimg->next = img->next;

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/23 20:39:22 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/06/23 22:12:37 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/06/24 15:53:04 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,8 @@ static void	*add_window(t_framework *framework, t_window *window)
 		return (append_object((void*)window, (void*)framework->windows));
 }
 
-void	*new_window(t_framework *framework, int width, int height, char *name)
+void		*new_window(t_framework *framework,
+	int width, int height, char *name)
 {
 	t_window *win;
 

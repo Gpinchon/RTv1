@@ -6,14 +6,14 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/22 13:02:30 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/06/22 18:48:50 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/06/24 15:44:45 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "mlx_framework.h"
 #include "internal_framework.h"
 
-void	init_errors()
+void	init_errors(void)
 {
 	int i;
 

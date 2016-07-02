@@ -1,3 +1,15 @@
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    Makefile                                           :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2016/06/27 21:27:07 by gpinchon          #+#    #+#              #
+#    Updated: 2016/06/29 15:22:37 by gpinchon         ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
+
 NAME	= libmlx_framework.a
 SRC		=	images.c		\
 			images2.c		\
@@ -13,7 +25,9 @@ SRC		=	images.c		\
 
 OBJ		= $(SRC:.c=.o)
 CC		= gcc
+CFLAGS	= -Ofast -Wall -Wextra -Werror $(INCLUDE)
 
+$(info mlx_framework Makefile says)
 ifeq ($(shell uname), Darwin)
 $(info Mac OS detected !)
 MLX_PATH = ./minilibx_mac/
@@ -23,25 +37,46 @@ $(info $(shell uname) detected !)
 MLX_PATH = ./minilibx_xorg/
 LIBS	= -L ./ -L $(MLX_PATH) -L ./libft/ -lm -lft -lmlx -lXext -lX11
 endif
-CFLAGS	= -Ofast -Wall -Wextra -Werror -I ./ -I $(MLX_PATH) -I ./libft/
+CFLAGS	= -Ofast -Wall -Wextra -Werror -I ./ -I $(MLX_PATH) -I ./libft/includes/
+
+define colorecho
+      @tput setaf 2
+      @echo $1
+      @tput sgr0
+endef
 
 $(NAME): $(OBJ)
 	ar -rc $(NAME) $(OBJ)
-	cd ./libft/ && $(MAKE)
-	cd $(MLX_PATH) && $(MAKE)
+	$(call colorecho, Compiling libft)
+	make -C ./libft/
+	$(call colorecho, Compiling mlx)
+	make -C $(MLX_PATH)
+
+NO_COLOR=\033[0m
+OK_COLOR=\033[32;01m
+OK_STRING=$(OK_COLOR)[OK]$(NO_COLOR)
+%.o: %.c
+	@echo -n Compiling $@...
+	@($(CC) $(CFLAGS) -o $@ -c $<)
+	@echo "$(OK_STRING)"
 
 all: $(NAME)
-	cd ./libft/ && $(MAKE) all
-	cd $(MLX_PATH) && $(MAKE) all
+	make -C ./libft/ all
+	make -C $(MLX_PATH) all
 
 clean:
-	cd ./libft/ && $(MAKE) clean
-	cd $(MLX_PATH) && $(MAKE) clean
+	$(call colorecho, Cleaning libft...)
+	@make -C ./libft/ clean
+	$(call colorecho, Cleaning MLX...)
+	@make -C $(MLX_PATH) clean
 	rm -rf $(OBJ)
 
-fclean: clean
+fclean:
+	$(call colorecho, Fully cleaning libft...)
+	@make -C ./libft/ fclean
+	$(call colorecho, Fully cleaning MLX...)
+	@make -C $(MLX_PATH) clean
 	rm -rf $(NAME)
 
-re: fclean $(NAME)
-	cd ./libft/ && $(MAKE) re
-	cd $(MLX_PATH) && $(MAKE) re
+re: fclean;
+	make

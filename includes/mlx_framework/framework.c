@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/23 18:27:12 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/06/23 20:34:12 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/06/24 15:44:10 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ void	init_loop(t_framework *framework)
 	mlx_loop(framework->mlx_ptr);
 }
 
-void	*init_framework()
+void	*init_framework(void)
 {
 	t_framework	*framework;
 

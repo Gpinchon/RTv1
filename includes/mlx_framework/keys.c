@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/23 20:30:43 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/06/23 22:19:26 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/06/24 15:46:36 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,8 +42,8 @@ int		handle_keypress(int keycode, t_window *window)
 	return (0);
 }
 
-
-void	setup_keypress(t_window *window, int keycode, void (*keyfun)(), void *arg)
+void	setup_keypress(t_window *window, int keycode,
+	void (*keyfun)(), void *arg)
 {
 	FRAMEWORK_DEBUG(!window, NULL_WINDOW_POINTER, "key_callback");
 	if (keycode >= 0 && keycode < MAX_KEYS)
