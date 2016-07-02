@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/22 19:14:23 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/06/22 19:23:43 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/07/02 12:41:31 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,6 +65,6 @@ t_vec3				vec3_rot(const t_vec3 vec, const t_vec3 vec1)
 	t_vec3			ret;
 
 	ret = vec3_rotx(vec, vec1.x);
-	ret = vec3_roty(vec, vec1.y);
-	return (vec3_rotz(vec, vec1.z));
+	ret = vec3_roty(ret, vec1.y);
+	return (vec3_rotz(ret, vec1.z));
 }

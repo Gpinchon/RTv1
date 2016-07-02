@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2016/06/24 18:08:48 by gpinchon          #+#    #+#              #
-#    Updated: 2016/06/29 20:12:58 by gpinchon         ###   ########.fr        #
+#    Updated: 2016/07/02 13:11:31 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -66,7 +66,7 @@ $(NAME): $(OBJ)
 	$(call colorecho, Compiling adv_math lib...)
 	@make -s -C ./includes/adv_math/
 	$(call colorecho, Compiling RT binary...)
-	@$(CC) $(CFLAGS) $(LIBS) -o $(NAME) $(OBJ)
+	@$(CC) $(CFLAGS) $(OBJ) $(LIBS) -o $(NAME)
 
 
 %.o: %.c
