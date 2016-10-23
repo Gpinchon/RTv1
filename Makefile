@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2016/06/24 18:08:48 by gpinchon          #+#    #+#              #
-#    Updated: 2016/10/23 19:13:27 by gpinchon         ###   ########.fr        #
+#    Updated: 2016/10/23 19:21:20 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -41,8 +41,8 @@ else
  SDL_LIBS = -lsdl_framework -lSDL2main -lSDL2 -lGL
 endif
 
-LIBS	= -L $(BASE_DIR) -L $(BASE_DIR)libft/ -L $(BASE_DIR)vml/ -L $(SDL_PATH)includes/ -lm -lvml -lsdl_framework -lft $(SDL_LIBS)
-INCLUDE = -I ./includes/ -I $(BASE_DIR) -I $(BASE_DIR)libft/includes/ -I $(BASE_DIR)vml/include -I $(BASE_DIR)sdl_framework/include/ -I $(SDL_PATH)
+LIBS	= -L $(BASE_DIR) -L $(BASE_DIR)libft/ -L $(BASE_DIR)VML/ -L $(SDL_PATH) -lm -lvml -lsdl_framework -lft $(SDL_LIBS)
+INCLUDE = -I ./include/ -I $(BASE_DIR) -I $(BASE_DIR)libft/includes/ -I $(BASE_DIR)VML/include -I $(SDL_PATH)include/ -I $(SDL_PATH)
 CFLAGS	= -Ofast -Wall -Wextra -Werror $(INCLUDE)
 
 define colorecho
@@ -63,8 +63,8 @@ WARN_STRING=$(WARN_COLOR)[WARNINGS]$(NO_COLOR)
 $(NAME): $(OBJ)
 	$(call colorecho, Compiling sdl_framework lib...)
 	@make -s -C $(BASE_DIR)sdl_framework/
-	$(call colorecho, Compiling vml lib...)
-	@make -s -C $(BASE_DIR)vml/
+	$(call colorecho, Compiling VML lib...)
+	@make -s -C $(BASE_DIR)VML/
 	$(call colorecho, Compiling RT binary...)
 	@$(CC) $(CFLAGS) $(OBJ) $(LIBS) -o $(NAME)
 
@@ -81,16 +81,16 @@ clean:
 	rm -f $(OBJ)
 	$(call colorecho, Cleaning sdl_framework lib...)
 	@make -C $(SDL_PATH) clean
-	$(call colorecho, Cleaning vml lib...)
-	@make -C $(BASE_DIR)vml/ clean
+	$(call colorecho, Cleaning VML lib...)
+	@make -C $(BASE_DIR)VML/ clean
 
 fclean:
 	$(call colorecho, Fully cleaning RT)
 	rm -f $(OBJ) $(NAME)
 	$(call colorecho, Fully cleaning sdl_framework lib...)
 	@make -C $(SDL_PATH) fclean
-	$(call colorecho, Fully cleaning vml lib...)
-	@make -C $(BASE_DIR)vml/ fclean
+	$(call colorecho, Fully cleaning VML lib...)
+	@make -C $(BASE_DIR)VML/ fclean
 
 re: fclean
 	make

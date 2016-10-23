@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/24 00:07:03 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/10/23 18:23:15 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/10/23 19:48:16 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,20 +14,20 @@
 # define RT_H
 # include <libft.h>
 # include <sdl_framework.h>
-# include <adv_math.h>
-# include <keys.h>
+# include <vml.h>
 # include <fcntl.h>
 
 # define SUPERSAMPLING	1
 # define WIDTH			512
 # define HEIGHT			512
-# define BACKGROUND	(t_rgb){0.5, 0.5, 0.5}
+# define BACKGROUND		(t_rgb){RGBCOL, 125, 125, 125}
 # define DIFFUSE		oren_nayar_diffuse
-# define SPECULAR	trowbridge_reitz_specular
+# define SPECULAR		trowbridge_reitz_specular
 # define DIRECTIONAL	0x0
-# define SPOT		0x1
-# define POINT		0x2
-# define MAX_OBJ	10000
+# define SPOT			0x1
+# define POINT			0x2
+# define MAX_OBJ		10000
+# define UINT			unsigned int
 
 /*
 ** Primitives types
