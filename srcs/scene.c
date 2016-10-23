@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/22 19:36:43 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/06/30 19:48:03 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/10/23 13:43:59 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,9 +115,9 @@ t_scene	default_scene(void)
 	}
 	s.primitive[0] = new_sphere((t_vec3){0, 100, 0}, 100);
 	s.primitive[1] = new_cylinder((t_vec3){0, 100, 0},
-		(t_vec3){1, 1, 1}, 10, 20);
-	s.primitive[2] = new_cone((t_vec3){0, -100, 0},
-		(t_vec3){1, 1, 1}, 10, 400);
+		(t_vec3){0, 1, 0}, 101, 20);
+	s.primitive[2] = new_cylinder((t_vec3){0, -50, 0},
+		(t_vec3){0, 1, 0}, 10, 400);
 	s.primitive[0].material = new_mtl((t_rgba){1, 0, 0, 1},
 		(t_rgba){0.1, 0, 0, 1}, (t_rgba){1, 1, 1, 1}, (t_vec3){80, 0.2, 1});
 	s.primitive[1].material = s.primitive[0].material;
