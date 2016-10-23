@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/24 00:07:03 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/06/27 17:04:21 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/10/23 13:57:18 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@
 # define DIRECTIONAL	0x0
 # define SPOT		0x1
 # define POINT		0x2
+# define MAX_OBJ	10000
 
 /*
 ** Primitives types

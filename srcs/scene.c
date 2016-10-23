@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/22 19:36:43 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/10/23 13:43:59 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/10/23 14:00:14 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,8 @@ void	save_scene(int keycode, t_scene *scene)
 
 void	check_scene_read(UINT readsize, UINT expected)
 {
-	if (readsize != expected)
+	if (readsize != expected
+	|| readsize >= MAX_OBJ)
 	{
 		ft_putstr("INVALID MAP !\n");
 		exit(-42);
