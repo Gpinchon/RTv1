@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2016/06/24 18:08:48 by gpinchon          #+#    #+#              #
-#    Updated: 2016/10/23 18:56:36 by gpinchon         ###   ########.fr        #
+#    Updated: 2016/10/23 19:13:27 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -34,7 +34,7 @@ $(info RT Makefile says)
 ifeq ($(shell uname), Darwin)
  $(info Mac OS detected !)
  SDL_PATH = $(BASE_DIR)sdl_framework/
- SDL_LIBS = -lsdl_framework -framework OpenGL -framework Appkit
+ SDL_LIBS = -lsdl_framework -lSDL2main -lSDL2 -framework OpenGL -framework Appkit
 else
  $(info $(shell uname) detected !)
  SDL_PATH = $(BASE_DIR)sdl_framework/
@@ -42,7 +42,7 @@ else
 endif
 
 LIBS	= -L $(BASE_DIR) -L $(BASE_DIR)libft/ -L $(BASE_DIR)vml/ -L $(SDL_PATH)includes/ -lm -lvml -lsdl_framework -lft $(SDL_LIBS)
-INCLUDE = -I ./includes/ -I $(BASE_DIR) -I $(BASE_DIR)libft/includes/ -I $(BASE_DIR)vml/include -I $(BASE_DIR)sdl_framework -I $(SDL_PATH)
+INCLUDE = -I ./includes/ -I $(BASE_DIR) -I $(BASE_DIR)libft/includes/ -I $(BASE_DIR)vml/include -I $(BASE_DIR)sdl_framework/include/ -I $(SDL_PATH)
 CFLAGS	= -Ofast -Wall -Wextra -Werror $(INCLUDE)
 
 define colorecho
