@@ -6,14 +6,14 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/24 00:07:03 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/10/23 13:57:18 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/10/23 18:23:15 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef RT_H
 # define RT_H
 # include <libft.h>
-# include <mlx_framework.h>
+# include <sdl_framework.h>
 # include <adv_math.h>
 # include <keys.h>
 # include <fcntl.h>

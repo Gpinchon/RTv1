@@ -1,0 +1,6 @@
+[submodule "includes/sdl_framework"]
+	path = includes/sdl_framework
+	url = https://github.com/Gpinchon/sdl_framework.git
+[submodule "includes/VML"]
+	path = includes/VML
+	url = https://github.com/Gpinchon/VML.git
