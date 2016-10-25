@@ -27,6 +27,7 @@
 # define DIRECTIONAL	0x0
 # define SPOT		0x1
 # define POINT		0x2
+# define MAX_READ	10000
 
 /*
 ** Primitives types

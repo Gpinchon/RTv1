@@ -26,7 +26,8 @@ void	save_scene(int keycode, t_scene *scene)
 
 void	check_scene_read(UINT readsize, UINT expected)
 {
-	if (readsize != expected)
+	if (readsize != expected
+	|| readsize >= MAX_READ)
 	{
 		ft_putstr("INVALID MAP !\n");
 		exit(-42);
