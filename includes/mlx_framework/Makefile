@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2016/06/27 21:27:07 by gpinchon          #+#    #+#              #
-#    Updated: 2016/07/02 13:04:17 by gpinchon         ###   ########.fr        #
+#    Updated: 2016/06/29 15:22:37 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -46,11 +46,11 @@ define colorecho
 endef
 
 $(NAME): $(OBJ)
+	ar -rc $(NAME) $(OBJ)
 	$(call colorecho, Compiling libft)
 	make -C ./libft/
 	$(call colorecho, Compiling mlx)
 	make -C $(MLX_PATH)
-	ar -rc $(NAME) $(OBJ)
 
 NO_COLOR=\033[0m
 OK_COLOR=\033[32;01m
@@ -76,7 +76,7 @@ fclean:
 	@make -C ./libft/ fclean
 	$(call colorecho, Fully cleaning MLX...)
 	@make -C $(MLX_PATH) clean
-	rm -rf $(OBJ) $(NAME)
+	rm -rf $(NAME)
 
 re: fclean;
 	make

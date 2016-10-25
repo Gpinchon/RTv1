@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/22 18:48:34 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/06/30 18:51:07 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/06/22 20:26:44 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ t_primitive	new_cylinder(t_vec3 pos, t_vec3 dir, float radius, float size)
 	p.radius2 = p.radius * p.radius;
 	p.size = size;
 	p.position = pos;
-	p.direction = vec3_normalize(dir);
+	p.direction = dir;
 	p.type = CYLINDER;
 	return (p);
 }
@@ -44,7 +44,7 @@ t_primitive	new_cone(t_vec3 pos, t_vec3 dir, float radius, float size)
 	p.radius2 = p.radius * p.radius;
 	p.size = size;
 	p.position = pos;
-	p.direction = vec3_normalize(dir);
+	p.direction = dir;
 	p.type = CONE;
 	return (p);
 }

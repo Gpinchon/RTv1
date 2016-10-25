@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/06/22 17:24:49 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/10/23 13:40:07 by gpinchon         ###   ########.fr       */
+/*   Updated: 2016/06/22 21:03:31 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,11 +27,7 @@ enum e_bool	intersect_sphere(t_primitive s, t_ray r, float *current_z)
 	return (solve_quadratic(a, b, c, t) && test_intersect(t, current_z));
 }
 
-//a   = vec3_dot(ray.direction, ray.direction) - pow(vec3_dot(ray.direction, cp.direction), 2);
-//b/2 = vec3_dot(ray.direction, eye) - vec3_dot(ray.direction, cp.direction) * vec3_dot(eye, cp.direction);
-//c   = vec3_dot(eye, eye) - pow(vec3_dot(eye, cp.direction), 2) - cp.radius2;
-
-enum e_bool intersect_cylinder(t_primitive cp, t_ray r, float *current_z)
+enum e_bool	intersect_cylinder(t_primitive cp, t_ray r, float *current_z)
 {
 	t_vec3	v[6];
 	float	t[2];
